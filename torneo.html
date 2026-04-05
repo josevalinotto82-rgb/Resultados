@@ -8,11 +8,11 @@
     * { box-sizing: border-box; }
 
     body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f8f3;
-  color: #1f2937;
-}
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f8f3;
+      color: #1f2937;
+    }
 
     .container {
       max-width: 1150px;
@@ -34,6 +34,26 @@
       padding: 18px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       margin-bottom: 18px;
+    }
+
+    .club-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .escudo {
+      height: 56px;
+      width: auto;
+      display: block;
+    }
+
+    .club-name {
+      margin: 0;
+      font-size: 22px;
+      color: #3e5740;
+      line-height: 1.1;
     }
 
     .titulo {
@@ -89,6 +109,11 @@
       color: #6b7280;
     }
 
+    tr.match td {
+      background: #dff3e4;
+      font-weight: 700;
+    }
+
     .estado {
       color: #6b7280;
     }
@@ -106,6 +131,14 @@
       .titulo {
         font-size: 22px;
       }
+
+      .club-name {
+        font-size: 20px;
+      }
+
+      .escudo {
+        height: 50px;
+      }
     }
   </style>
 </head>
@@ -114,6 +147,11 @@
     <a class="back" href="./index.html">← Volver a torneos</a>
 
     <div class="card">
+      <div class="club-row">
+        <img src="escudo.png" alt="Escudo Villa María Golf" class="escudo">
+        <h1 class="club-name">Villa María Golf</h1>
+      </div>
+
       <h1 id="titulo" class="titulo">Cargando...</h1>
       <p id="subtitulo" class="subtitulo"></p>
       <p id="estado" class="estado"></p>
@@ -125,8 +163,28 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const idBuscado = (params.get("id") || "").trim();
+    const busquedaJugador = params.get("q") || "";
 
     const MODALIDADES_PAREJA = ["FOUR BALL AMERICANA", "FOUR BALL 3/8"];
+
+    function normalizarTexto(texto) {
+      return String(texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[,.;:()]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function coincideBusquedaJugador(nombreJugador, busqueda) {
+      const palabras = normalizarTexto(busqueda).split(" ").filter(Boolean);
+      const nombre = normalizarTexto(nombreJugador);
+
+      if (palabras.length === 0) return false;
+
+      return palabras.every(p => nombre.includes(p));
+    }
 
     function parseNumero(valor) {
       if (valor === undefined || valor === null) return null;
@@ -137,9 +195,9 @@
     }
 
     function esNoValido(total) {
-  const t = String(total || "").trim().toUpperCase().replace(",", ".");
-  return t === "NPT" || t === "DESC" || t === "" || t === "0" || t === "0.0" || t === "0.00";
-}
+      const t = String(total || "").trim().toUpperCase().replace(",", ".");
+      return t === "NPT" || t === "DESC" || t === "" || t === "0" || t === "0.0" || t === "0.00";
+    }
 
     function esModalidadPareja(modalidad) {
       return MODALIDADES_PAREJA.includes(String(modalidad || "").trim().toUpperCase());
@@ -241,27 +299,27 @@
 
           let listaFinal = [];
 
-if (esModalidadPareja(primero.MODALIDAD)) {
-  listaFinal = jugadores.slice().sort((a, b) => {
-    const aInvalido = esNoValido(a.TOTAL) ? 1 : 0;
-    const bInvalido = esNoValido(b.TOTAL) ? 1 : 0;
-    return aInvalido - bInvalido;
-  });
-} else {
-  const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
-  const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
+          if (esModalidadPareja(primero.MODALIDAD)) {
+            listaFinal = jugadores.slice().sort((a, b) => {
+              const aInvalido = esNoValido(a.TOTAL) ? 1 : 0;
+              const bInvalido = esNoValido(b.TOTAL) ? 1 : 0;
+              return aInvalido - bInvalido;
+            });
+          } else {
+            const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
+            const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
 
-  validos.sort((a, b) => {
-    const ta = parseNumero(a.TOTAL);
-    const tb = parseNumero(b.TOTAL);
-    if (ta === null && tb === null) return 0;
-    if (ta === null) return 1;
-    if (tb === null) return -1;
-    return ta - tb;
-  });
+            validos.sort((a, b) => {
+              const ta = parseNumero(a.TOTAL);
+              const tb = parseNumero(b.TOTAL);
+              if (ta === null && tb === null) return 0;
+              if (ta === null) return 1;
+              if (tb === null) return -1;
+              return ta - tb;
+            });
 
-  listaFinal = [...validos, ...noValidos];
-}
+            listaFinal = [...validos, ...noValidos];
+          }
 
           html += `<h2 class="categoria">${cat}</h2>`;
           html += `
@@ -288,8 +346,10 @@ if (esModalidadPareja(primero.MODALIDAD)) {
           listaFinal.forEach(j => {
             const invalido = esNoValido(j.TOTAL);
             const posMostrar = invalido ? "" : (j.POSICION || posicion++);
+            const esMatch = coincideBusquedaJugador(j.JUGADOR, busquedaJugador);
+
             html += `
-              <tr class="${invalido ? 'novalido' : ''}">
+              <tr class="${invalido ? 'novalido' : ''} ${esMatch ? 'match' : ''}">
                 <td>${posMostrar}</td>
                 <td class="nombre">${j.JUGADOR}</td>
                 <td>${j.INDEX}</td>
