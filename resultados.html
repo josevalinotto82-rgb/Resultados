@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Torneos</title>
+
+<style>
+body {font-family: Arial; background:#f5f5f5; margin:0;}
+.container {max-width:900px; margin:auto; padding:20px;}
+.torneo {
+    background:white;
+    padding:15px;
+    margin-bottom:10px;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+button {
+    padding:8px 12px;
+    background:#1e7d3b;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Torneos</h1>
+<div id="lista"></div>
+</div>
+
+<script>
+fetch('INDEX.csv')
+.then(res => res.text())
+.then(data => {
+    let filas = data.split('\n').slice(1);
+    let html = '';
+
+    filas.forEach(fila => {
+        let col = fila.split(';');
+
+        if(col.length > 3){
+            let id = col[0];
+            let fecha = col[1];
+            let torneo = col[2];
+            let modalidad = col[3];
+
+            html += `
+            <div class="torneo">
+                <div>
+                    <b>${fecha}</b><br>
+                    ${torneo}<br>
+                    <small>${modalidad}</small>
+                </div>
+                <button onclick="verTorneo('${id}')">Ver</button>
+            </div>
+            `;
+        }
+    });
+
+    document.getElementById('lista').innerHTML = html;
+});
+
+function verTorneo(id){
+    window.location.href = "torneo.html?id=" + id;
+}
+</script>
+
+</body>
+</html>
