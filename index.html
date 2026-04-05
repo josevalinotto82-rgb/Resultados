@@ -2,10 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Torneos</title>
 
 <style>
-body {font-family: Arial; background:#f5f5f5; margin:0;}
+body {font-family: Arial, sans-serif; background:#f5f5f5; margin:0;}
 .container {max-width:900px; margin:auto; padding:20px;}
 .torneo {
     background:white;
@@ -15,6 +16,7 @@ body {font-family: Arial; background:#f5f5f5; margin:0;}
     display:flex;
     justify-content:space-between;
     align-items:center;
+    gap: 12px;
 }
 button {
     padding:8px 12px;
@@ -23,6 +25,7 @@ button {
     border:none;
     border-radius:5px;
     cursor:pointer;
+    white-space: nowrap;
 }
 </style>
 </head>
@@ -36,8 +39,43 @@ button {
 </div>
 
 <script>
-fetch('./INDEX.csv')
-.then(res => res.text())
+function normalizarTexto(texto) {
+    return (texto || '')
+        .trim()
+        .toUpperCase()
+        .replace(/Á/g, 'A')
+        .replace(/É/g, 'E')
+        .replace(/Í/g, 'I')
+        .replace(/Ó/g, 'O')
+        .replace(/Ú/g, 'U')
+        .replace(/Ü/g, 'U')
+        .replace(/Ñ/g, 'N')
+        .replace(/[^A-Z0-9]/g, '');
+}
+
+function fechaAId(fecha) {
+    // espera dd/mm/yyyy
+    const partes = (fecha || '').trim().split('/');
+    if (partes.length !== 3) return '';
+    const dd = partes[0].padStart(2, '0');
+    const mm = partes[1].padStart(2, '0');
+    const yyyy = partes[2];
+    return `${yyyy}${mm}${dd}`;
+}
+
+function construirId(fecha, nombre) {
+    return fechaAId(fecha) + "_" + normalizarTexto(nombre);
+}
+
+function verTorneo(id){
+    window.location.href = "torneo.html?id=" + encodeURIComponent(id);
+}
+
+fetch('./INDEX.csv?v=' + Date.now())
+.then(res => {
+    if (!res.ok) throw new Error('No se pudo abrir INDEX.csv');
+    return res.text();
+})
 .then(data => {
     document.getElementById('estado').innerText = "";
 
@@ -47,32 +85,31 @@ fetch('./INDEX.csv')
     filas.forEach(fila => {
         let col = fila.split(';');
 
-        if(col.length > 3){
-            let id = (col[0] || '').trim();
-            let fecha = (col[1] || '').trim();
-            let torneo = (col[2] || '').trim();
-            let modalidad = (col[3] || '').trim();
+        if(col.length >= 3){
+            let fecha = (col[0] || '').trim();
+            let torneo = (col[1] || '').trim();
+            let modalidad = (col[2] || '').trim();
+
+            let id = construirId(fecha, torneo);
 
             html += `
             <div class="torneo">
                 <div>
                     <b>${fecha}</b><br>
                     ${torneo}<br>
-                    <small>${modalidad}</small><br>
-                    <small style="color:#777;">ID: ${id}</small>
+                    <small>${modalidad}</small>
                 </div>
-                <button onclick="verTorneo('${encodeURIComponent(id)}')">Ver</button>
+                <button onclick="verTorneo('${id}')">Ver</button>
             </div>
             `;
         }
     });
 
     document.getElementById('lista').innerHTML = html;
+})
+.catch(err => {
+    document.getElementById('estado').innerText = "Error: " + err.message;
 });
-
-function verTorneo(id){
-    window.location.href = "torneo.html?id=" + id;
-}
 </script>
 
 </body>
