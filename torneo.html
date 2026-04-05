@@ -242,8 +242,12 @@
           let listaFinal = [];
 
 if (esModalidadPareja(primero.MODALIDAD)) {
-  // En Four Ball respetamos el orden original del CSV
-  listaFinal = jugadores;
+  const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
+  const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
+
+  // En Four Ball respetamos el orden original dentro de cada grupo,
+  // pero mandamos al final los que tienen 0, NPT, DESC o vacío.
+  listaFinal = [...validos, ...noValidos];
 } else {
   const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
   const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
