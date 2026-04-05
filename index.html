@@ -15,42 +15,62 @@
     }
 
     .container {
-      max-width: 1000px;
+      max-width: 1150px;
       margin: 0 auto;
       padding: 24px 16px 40px;
     }
 
-    .header {
-      margin-bottom: 24px;
+    .hero {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 18px;
     }
 
-    .club-header {
+    .hero-top {
       display: flex;
       align-items: center;
-      gap: 15px;
-      margin-bottom: 24px;
+      gap: 16px;
+      margin-bottom: 8px;
     }
 
     .escudo {
-      height: 60px;
+      height: 64px;
       width: auto;
+      display: block;
     }
 
-    .header h1 {
-      margin: 0 0 8px;
-      font-size: 32px;
-    }
-
-    .header p {
+    .club-title {
       margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .club-subtitle {
+      margin: 4px 0 0;
       color: #6b7280;
+      font-size: 15px;
+    }
+
+    .page-title {
+      margin: 18px 0 8px;
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .page-text {
+      margin: 0;
+      color: #374151;
+      font-size: 16px;
     }
 
     .tools {
       display: grid;
-      grid-template-columns: 1fr 180px;
+      grid-template-columns: 1fr 220px;
       gap: 12px;
-      margin: 24px 0;
+      margin-bottom: 16px;
     }
 
     .tools input,
@@ -61,6 +81,13 @@
       border-radius: 10px;
       font-size: 15px;
       background: white;
+      color: #1f2937;
+      outline: none;
+    }
+
+    .tools input:focus,
+    .tools select:focus {
+      border-color: #166534;
     }
 
     .status {
@@ -71,13 +98,13 @@
 
     .lista {
       display: grid;
-      gap: 12px;
+      gap: 14px;
     }
 
     .torneo {
       background: white;
       border-radius: 14px;
-      padding: 16px;
+      padding: 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -87,6 +114,7 @@
 
     .torneo-info {
       min-width: 0;
+      flex: 1;
     }
 
     .fecha {
@@ -94,32 +122,35 @@
       font-size: 13px;
       color: #166534;
       background: #dcfce7;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 999px;
-      margin-bottom: 8px;
-      font-weight: bold;
+      margin-bottom: 10px;
+      font-weight: 700;
     }
 
     .nombre {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 4px;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      line-height: 1.25;
+      text-transform: uppercase;
     }
 
     .modalidad {
       color: #6b7280;
-      font-size: 14px;
+      font-size: 15px;
     }
 
     .ver-btn {
       border: none;
       background: #166534;
       color: white;
-      padding: 10px 16px;
+      padding: 11px 18px;
       border-radius: 10px;
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 700;
       white-space: nowrap;
+      font-size: 14px;
     }
 
     .ver-btn:hover {
@@ -135,7 +166,27 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 760px) {
+      .container {
+        padding: 18px 12px 32px;
+      }
+
+      .hero-top {
+        align-items: center;
+      }
+
+      .escudo {
+        height: 54px;
+      }
+
+      .club-title {
+        font-size: 21px;
+      }
+
+      .page-title {
+        font-size: 28px;
+      }
+
       .tools {
         grid-template-columns: 1fr;
       }
@@ -148,29 +199,22 @@
       .ver-btn {
         width: 100%;
       }
-
-      .header h1 {
-        font-size: 26px;
-      }
-
-      .nombre {
-        font-size: 16px;
-      }
-
-      .escudo {
-        height: 52px;
-      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header club-header">
-      <img src="escudo.png" alt="Escudo Villa María Golf" class="escudo">
-      <div>
-        <h1>Villa María Golf</h1>
-        <p>Resultados de torneos</p>
+    <div class="hero">
+      <div class="hero-top">
+        <img src="escudo.png" alt="Escudo Villa María Golf" class="escudo">
+        <div>
+          <h1 class="club-title">Villa María Golf</h1>
+          <p class="club-subtitle">Resultados de torneos</p>
+        </div>
       </div>
+
+      <h2 class="page-title">Torneos</h2>
+      <p class="page-text">Resultados históricos del Villa María Golf</p>
     </div>
 
     <div class="tools">
@@ -262,7 +306,9 @@
           return db - da;
         });
 
-        const anios = [...new Set(torneos.map(t => extraerAnio(t.FECHA)).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+        const anios = [...new Set(torneos.map(t => extraerAnio(t.FECHA)).filter(Boolean))]
+          .sort((a, b) => b.localeCompare(a));
+
         const filtroAnio = document.getElementById("filtroAnio");
         filtroAnio.innerHTML += anios.map(a => `<option value="${a}">${a}</option>`).join("");
 
