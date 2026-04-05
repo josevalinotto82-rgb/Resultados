@@ -126,10 +126,12 @@
     const params = new URLSearchParams(window.location.search);
     const idBuscado = (params.get("id") || "").trim();
 
+    const MODALIDADES_PAREJA = ["FOUR BALL AMERICANA", "FOUR BALL 3/8"];
+
     function parseNumero(valor) {
       if (valor === undefined || valor === null) return null;
       const limpio = String(valor).trim().replace(",", ".");
-      if (limpio === "" || limpio === "NPT" || limpio === "DESC") return null;
+      if (limpio === "" || limpio.toUpperCase() === "NPT" || limpio.toUpperCase() === "DESC") return null;
       const n = Number(limpio);
       return Number.isNaN(n) ? null : n;
     }
@@ -137,6 +139,43 @@
     function esNoValido(total) {
       const t = String(total || "").trim().toUpperCase();
       return t === "NPT" || t === "DESC" || t === "";
+    }
+
+    function esModalidadPareja(modalidad) {
+      return MODALIDADES_PAREJA.includes(String(modalidad || "").trim().toUpperCase());
+    }
+
+    function agruparParejasConsecutivas(jugadores) {
+      const salida = [];
+
+      for (let i = 0; i < jugadores.length; i += 2) {
+        const j1 = jugadores[i];
+        const j2 = jugadores[i + 1];
+
+        if (!j2) {
+          salida.push(j1);
+          continue;
+        }
+
+        salida.push({
+          ID: j2.ID || j1.ID,
+          FECHA: j2.FECHA || j1.FECHA,
+          TORNEO: j2.TORNEO || j1.TORNEO,
+          MODALIDAD: j2.MODALIDAD || j1.MODALIDAD,
+          CATEGORIA: j2.CATEGORIA || j1.CATEGORIA,
+          POSICION: j2.POSICION || j1.POSICION,
+          JUGADOR: `${j1.JUGADOR} / ${j2.JUGADOR}`,
+          INDEX: `${j1.INDEX || ""} / ${j2.INDEX || ""}`,
+          NETO1: j2.NETO1 || j1.NETO1 || "",
+          NETO2: j2.NETO2 || j1.NETO2 || "",
+          GROSS: j2.GROSS || j1.GROSS || "",
+          HCP: j2.HCP || j1.HCP || "",
+          NETO: j2.NETO || j1.NETO || "",
+          TOTAL: j2.TOTAL || j1.TOTAL || ""
+        });
+      }
+
+      return salida;
     }
 
     fetch("./RESULTADOS.csv?v=" + Date.now())
@@ -194,7 +233,11 @@
         let html = "";
 
         Object.keys(categorias).forEach(cat => {
-          const jugadores = categorias[cat];
+          let jugadores = categorias[cat];
+
+          if (esModalidadPareja(primero.MODALIDAD)) {
+            jugadores = agruparParejasConsecutivas(jugadores);
+          }
 
           const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
           const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
