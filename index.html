@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Torneos</title>
-
 <style>
-body {font-family: Arial, sans-serif; background:#f5f5f5; margin:0;}
-.container {max-width:900px; margin:auto; padding:20px;}
+body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; }
+.container { max-width:900px; margin:auto; padding:20px; }
 .torneo {
     background:white;
     padding:15px;
@@ -16,7 +15,7 @@ body {font-family: Arial, sans-serif; background:#f5f5f5; margin:0;}
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap: 12px;
+    gap:12px;
 }
 button {
     padding:8px 12px;
@@ -25,17 +24,21 @@ button {
     border:none;
     border-radius:5px;
     cursor:pointer;
-    white-space: nowrap;
+    white-space:nowrap;
+}
+.debug {
+    color:#777;
+    font-size:12px;
+    margin-top:4px;
 }
 </style>
 </head>
-
 <body>
 
 <div class="container">
-<h1>Torneos</h1>
-<div id="estado">Cargando...</div>
-<div id="lista"></div>
+    <h1>Torneos</h1>
+    <div id="estado">Cargando...</div>
+    <div id="lista"></div>
 </div>
 
 <script>
@@ -54,61 +57,61 @@ function normalizarTexto(texto) {
 }
 
 function fechaAId(fecha) {
-    // espera dd/mm/yyyy
     const partes = (fecha || '').trim().split('/');
     if (partes.length !== 3) return '';
     const dd = partes[0].padStart(2, '0');
     const mm = partes[1].padStart(2, '0');
     const yyyy = partes[2];
-    return `${yyyy}${mm}${dd}`;
+    return yyyy + mm + dd;
 }
 
-function construirId(fecha, nombre) {
-    return fechaAId(fecha) + "_" + normalizarTexto(nombre);
+function construirId(fecha, torneo) {
+    return fechaAId(fecha) + "_" + normalizarTexto(torneo);
 }
 
-function verTorneo(id){
+function verTorneo(id) {
     window.location.href = "torneo.html?id=" + encodeURIComponent(id);
 }
 
 fetch('./INDEX.csv?v=' + Date.now())
 .then(res => {
-    if (!res.ok) throw new Error('No se pudo abrir INDEX.csv');
+    if (!res.ok) throw new Error('No se pudo abrir INDEX.csv. HTTP ' + res.status);
     return res.text();
 })
 .then(data => {
-    document.getElementById('estado').innerText = "";
-
-    let filas = data.replace(/\r/g, '').split('\n').slice(1);
+    const filas = data.replace(/\r/g, '').split('\n').slice(1);
     let html = '';
 
     filas.forEach(fila => {
-        let col = fila.split(';');
+        if (!fila.trim()) return;
 
-        if(col.length >= 3){
-            let fecha = (col[0] || '').trim();
-            let torneo = (col[1] || '').trim();
-            let modalidad = (col[2] || '').trim();
+        const col = fila.split(';');
 
-            let id = construirId(fecha, torneo);
+        if (col.length >= 3) {
+            const fecha = (col[0] || '').trim();
+            const torneo = (col[1] || '').trim();
+            const modalidad = (col[2] || '').trim();
+            const id = construirId(fecha, torneo);
 
             html += `
-            <div class="torneo">
-                <div>
-                    <b>${fecha}</b><br>
-                    ${torneo}<br>
-                    <small>${modalidad}</small>
+                <div class="torneo">
+                    <div>
+                        <b>${fecha}</b><br>
+                        ${torneo}<br>
+                        <small>${modalidad}</small>
+                        <div class="debug">ID armado: ${id}</div>
+                    </div>
+                    <button onclick="verTorneo('${id}')">Ver</button>
                 </div>
-                <button onclick="verTorneo('${id}')">Ver</button>
-            </div>
             `;
         }
     });
 
+    document.getElementById('estado').innerText = '';
     document.getElementById('lista').innerHTML = html;
 })
 .catch(err => {
-    document.getElementById('estado').innerText = "Error: " + err.message;
+    document.getElementById('estado').innerText = 'Error: ' + err.message;
 });
 </script>
 
