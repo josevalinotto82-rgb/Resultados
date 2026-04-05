@@ -279,7 +279,7 @@
         const primero = registros[0];
         document.getElementById("titulo").textContent = primero.TORNEO;
         document.getElementById("subtitulo").textContent = `${primero.FECHA} · ${primero.MODALIDAD}`;
-        document.getElementById("estado").textContent = `${registros.length} registro(s) encontrados`;
+        document.getElementById("estado").textContent = "";
 
         const categorias = {};
         registros.forEach(r => {
