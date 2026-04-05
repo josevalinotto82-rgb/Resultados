@@ -41,26 +41,27 @@ fetch('./INDEX.csv')
 .then(data => {
     document.getElementById('estado').innerText = "";
 
-    let filas = data.split('\n').slice(1);
+    let filas = data.replace(/\r/g, '').split('\n').slice(1);
     let html = '';
 
     filas.forEach(fila => {
         let col = fila.split(';');
 
         if(col.length > 3){
-            let id = col[0];
-            let fecha = col[1];
-            let torneo = col[2];
-            let modalidad = col[3];
+            let id = (col[0] || '').trim();
+            let fecha = (col[1] || '').trim();
+            let torneo = (col[2] || '').trim();
+            let modalidad = (col[3] || '').trim();
 
             html += `
             <div class="torneo">
                 <div>
                     <b>${fecha}</b><br>
                     ${torneo}<br>
-                    <small>${modalidad}</small>
+                    <small>${modalidad}</small><br>
+                    <small style="color:#777;">ID: ${id}</small>
                 </div>
-                <button onclick="verTorneo('${id}')">Ver</button>
+                <button onclick="verTorneo('${encodeURIComponent(id)}')">Ver</button>
             </div>
             `;
         }
