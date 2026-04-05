@@ -239,19 +239,26 @@
             jugadores = agruparParejasConsecutivas(jugadores);
           }
 
-          const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
-          const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
+          let listaFinal = [];
 
-          validos.sort((a, b) => {
-            const ta = parseNumero(a.TOTAL);
-            const tb = parseNumero(b.TOTAL);
-            if (ta === null && tb === null) return 0;
-            if (ta === null) return 1;
-            if (tb === null) return -1;
-            return ta - tb;
-          });
+if (esModalidadPareja(primero.MODALIDAD)) {
+  // En Four Ball respetamos el orden original del CSV
+  listaFinal = jugadores;
+} else {
+  const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
+  const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
 
-          const listaFinal = [...validos, ...noValidos];
+  validos.sort((a, b) => {
+    const ta = parseNumero(a.TOTAL);
+    const tb = parseNumero(b.TOTAL);
+    if (ta === null && tb === null) return 0;
+    if (ta === null) return 1;
+    if (tb === null) return -1;
+    return ta - tb;
+  });
+
+  listaFinal = [...validos, ...noValidos];
+}
 
           html += `<h2 class="categoria">${cat}</h2>`;
           html += `
@@ -277,7 +284,7 @@
 
           listaFinal.forEach(j => {
             const invalido = esNoValido(j.TOTAL);
-            const posMostrar = invalido ? "" : (j.POSICION || posicion++);
+            const posMostrar = j.POSICION || (invalido ? "" : posicion++);
             html += `
               <tr class="${invalido ? 'novalido' : ''}">
                 <td>${posMostrar}</td>
