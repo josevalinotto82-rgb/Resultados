@@ -248,7 +248,9 @@
     }
 
     function irATorneo(id) {
-      window.location.href = "torneo.html?id=" + encodeURIComponent(id);
+      const busqueda = document.getElementById("buscador").value || "";
+      const url = "torneo.html?id=" + encodeURIComponent(id) + "&q=" + encodeURIComponent(busqueda);
+      window.location.href = url;
     }
 
     function textoContador(cantidad) {
