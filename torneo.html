@@ -48,9 +48,8 @@ fetch('RESULTADOS.csv')
 
     filas.forEach(fila => {
         let col = fila.split(';');
-        let id = col[0];
 
-        if(id === idBuscado){
+        if(col[0] === idBuscado){
 
             let categoria = col[4];
 
@@ -74,9 +73,22 @@ fetch('RESULTADOS.csv')
 
     for(let cat in categorias){
 
+        let jugadores = categorias[cat];
+
+        // separar válidos de NPT/DESC
+        let validos = jugadores.filter(j => j.total !== "NPT" && j.total !== "DESC");
+        let noValidos = jugadores.filter(j => j.total === "NPT" || j.total === "DESC");
+
+        // ordenar válidos
+        validos.sort((a,b) => Number(a.total) - Number(b.total));
+
+        // unir
+        let listaFinal = [...validos, ...noValidos];
+
         html += `<h2>${cat}</h2>`;
         html += `<table>
         <tr>
+            <th>Pos</th>
             <th>Jugador</th>
             <th>Gross</th>
             <th>Hcp</th>
@@ -84,9 +96,15 @@ fetch('RESULTADOS.csv')
             <th>Total</th>
         </tr>`;
 
-        categorias[cat].forEach(j => {
+        let pos = 1;
+
+        listaFinal.forEach(j => {
+
+            let posicion = (j.total === "NPT" || j.total === "DESC") ? "" : pos++;
+
             html += `
             <tr>
+                <td>${posicion}</td>
                 <td>${j.jugador}</td>
                 <td>${j.gross}</td>
                 <td>${j.hcp}</td>
