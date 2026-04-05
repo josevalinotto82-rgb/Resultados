@@ -137,9 +137,9 @@
     }
 
     function esNoValido(total) {
-      const t = String(total || "").trim().toUpperCase();
-      return t === "NPT" || t === "DESC" || t === "";
-    }
+  const t = String(total || "").trim().toUpperCase();
+  return t === "NPT" || t === "DESC" || t === "" || t === "0" || t === "0.0" || t === "0,0";
+}
 
     function esModalidadPareja(modalidad) {
       return MODALIDADES_PAREJA.includes(String(modalidad || "").trim().toUpperCase());
