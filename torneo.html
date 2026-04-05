@@ -342,7 +342,7 @@
             const esMatch = coincideBusquedaJugador(j.JUGADOR, busquedaJugador);
 
             html += `
-              <tr class="${invalido ? 'novalido' : ''} ${esMatch ? 'match' : ''}">
+              <tr class="${invalido ? 'novalido' : ''} ${esMatch ? 'match match-jugador' : ''}">
                 <td>${posMostrar}</td>
                 <td class="nombre">${j.JUGADOR}</td>
                 <td>${j.INDEX}</td>
@@ -364,6 +364,16 @@
         });
 
         document.getElementById("contenido").innerHTML = html;
+
+        setTimeout(() => {
+          const fila = document.querySelector(".match-jugador");
+          if (fila) {
+            fila.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+          }
+        }, 300);
       })
       .catch(err => {
         document.getElementById("titulo").textContent = "Error";
