@@ -42,12 +42,12 @@
     }
 
     .club-title {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.1;
-  color: #3e5740;
-}
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: #3e5740;
+    }
 
     .club-subtitle {
       margin: 4px 0 0;
@@ -88,7 +88,7 @@
 
     .tools input:focus,
     .tools select:focus {
-      border-color: #166534;
+      border-color: #3e5740;
     }
 
     .status {
@@ -172,10 +172,6 @@
         padding: 18px 12px 32px;
       }
 
-      .hero-top {
-        align-items: center;
-      }
-
       .escudo {
         height: 54px;
       }
@@ -213,9 +209,6 @@
           <p class="club-subtitle">Resultados de torneos</p>
         </div>
       </div>
-
-      <h2 class="page-title">Torneos</h2>
-      <p class="page-text">Resultados históricos del Villa María Golf</p>
     </div>
 
     <div class="tools">
@@ -242,6 +235,12 @@
       window.location.href = "torneo.html?id=" + encodeURIComponent(id);
     }
 
+    function textoContador(cantidad) {
+      return cantidad === 1
+        ? "1 torneo encontrado"
+        : `${cantidad} torneos encontrados`;
+    }
+
     function renderTorneos() {
       const texto = document.getElementById("buscador").value.trim().toLowerCase();
       const anio = document.getElementById("filtroAnio").value;
@@ -259,7 +258,7 @@
         return coincideTexto && coincideAnio;
       });
 
-      status.textContent = `${filtrados.length} torneo(s) encontrado(s)`;
+      status.textContent = textoContador(filtrados.length);
 
       if (filtrados.length === 0) {
         lista.innerHTML = `<div class="empty">No se encontraron torneos con esos filtros.</div>`;
