@@ -31,13 +31,16 @@ button {
 
 <div class="container">
 <h1>Torneos</h1>
+<div id="estado">Cargando...</div>
 <div id="lista"></div>
 </div>
 
 <script>
-fetch('INDEX.csv')
+fetch('./INDEX.csv')
 .then(res => res.text())
 .then(data => {
+    document.getElementById('estado').innerText = "";
+
     let filas = data.split('\n').slice(1);
     let html = '';
 
