@@ -1,200 +1,108 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resultados del Torneo</title>
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-}
-.container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 20px;
-}
-h1 {
-    margin-bottom: 10px;
-}
-h2 {
-    margin-top: 30px;
-}
-.msg {
-    background: white;
-    padding: 14px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-.error {
-    color: #b00020;
-    white-space: pre-wrap;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    margin-bottom: 20px;
-}
-th, td {
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
-    text-align: center;
-}
-th {
-    background: #1e7d3b;
-    color: white;
-}
-.volver {
-    display: inline-block;
-    margin-bottom: 15px;
-    text-decoration: none;
-    color: #1e7d3b;
-    font-weight: bold;
-}
-@media (max-width: 768px) {
-    .tabla-wrap {
-        overflow-x: auto;
-    }
-    table {
-        min-width: 700px;
-    }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle del torneo</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; }
+    .container { max-width:1000px; margin:auto; padding:20px; }
+    .box { background:#fff; padding:16px; border-radius:8px; margin-bottom:16px; }
+    table { width:100%; border-collapse:collapse; background:#fff; }
+    th, td { padding:8px; border-bottom:1px solid #ddd; text-align:center; }
+    th { background:#1e7d3b; color:#fff; }
+    .error { color:#b00020; font-weight:bold; white-space:pre-wrap; }
+    .ok { color:#1e7d3b; font-weight:bold; }
+  </style>
 </head>
-
 <body>
-
-<div class="container">
-    <a class="volver" href="./index.html">← Volver a torneos</a>
-    <h1 id="titulo">Resultados</h1>
-    <div id="estado" class="msg">Cargando torneo...</div>
+  <div class="container">
+    <div class="box">
+      <a href="./">← Volver</a>
+      <h1 id="titulo">Detalle del torneo</h1>
+      <div id="estado">Iniciando...</div>
+    </div>
     <div id="contenido"></div>
-</div>
+  </div>
 
-<script>
-const params = new URLSearchParams(window.location.search);
-const idBuscado = (params.get("id") || "").trim();
+  <script>
+    const estado = document.getElementById("estado");
+    const contenido = document.getElementById("contenido");
+    const titulo = document.getElementById("titulo");
 
-const titulo = document.getElementById("titulo");
-const estado = document.getElementById("estado");
-const contenido = document.getElementById("contenido");
+    const params = new URLSearchParams(window.location.search);
+    const idBuscado = decodeURIComponent((params.get("id") || "").trim());
 
-if (!idBuscado) {
-    estado.innerHTML = '<div class="error">No llegó el ID del torneo en la URL.</div>';
-} else {
-    fetch('./RESULTADOS.csv', { cache: 'no-store' })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error('No se pudo abrir RESULTADOS.csv. Estado HTTP: ' + res.status);
-        }
-        return res.text();
-    })
-    .then(data => {
-        const texto = data.replace(/\r/g, '').trim();
+    estado.innerHTML = '<span class="ok">ID recibido:</span> ' + idBuscado;
 
-        if (!texto) {
-            throw new Error('RESULTADOS.csv está vacío.');
-        }
+    if (!idBuscado) {
+      estado.innerHTML = '<div class="error">No llegó ningún ID en la URL.</div>';
+    } else {
+      fetch('./RESULTADOS.csv?v=' + Date.now())
+        .then(res => {
+          if (!res.ok) throw new Error('No se pudo abrir RESULTADOS.csv. HTTP ' + res.status);
+          return res.text();
+        })
+        .then(texto => {
+          texto = texto.replace(/\r/g, '');
+          const filas = texto.split('\n');
+          if (filas.length < 2) throw new Error('RESULTADOS.csv parece vacío o sin filas.');
 
-        const filas = texto.split('\n');
-        filas.shift(); // sacar encabezado
+          filas.shift();
 
-        const categorias = {};
-        let encontrados = 0;
-        let nombreTorneo = '';
-        let modalidadTorneo = '';
-        let fechaTorneo = '';
+          let encontrados = [];
+          let nombreTorneo = '';
+          let modalidad = '';
+          let fecha = '';
 
-        filas.forEach(fila => {
-            if (!fila.trim()) return;
-
+          for (const fila of filas) {
+            if (!fila.trim()) continue;
             const col = fila.split(';');
+            const id = (col[0] || '').trim();
 
-            const idFila = (col[0] || '').trim();
+            if (id === idBuscado) {
+              encontrados.push({
+                categoria: (col[4] || '').trim(),
+                jugador: (col[6] || '').trim(),
+                gross: (col[10] || '').trim(),
+                hcp: (col[11] || '').trim(),
+                neto: (col[12] || '').trim(),
+                total: (col[13] || '').trim()
+              });
 
-            if (idFila === idBuscado) {
-                encontrados++;
-
-                fechaTorneo = (col[1] || '').trim();
-                nombreTorneo = (col[2] || '').trim();
-                modalidadTorneo = (col[3] || '').trim();
-
-                const categoria = (col[4] || 'Sin categoría').trim();
-
-                if (!categorias[categoria]) {
-                    categorias[categoria] = [];
-                }
-
-                categorias[categoria].push({
-                    jugador: (col[6] || '').trim(),
-                    gross: (col[10] || '').trim(),
-                    hcp: (col[11] || '').trim(),
-                    neto: (col[12] || '').trim(),
-                    total: (col[13] || '').trim()
-                });
+              fecha = (col[1] || '').trim();
+              nombreTorneo = (col[2] || '').trim();
+              modalidad = (col[3] || '').trim();
             }
+          }
+
+          if (encontrados.length === 0) {
+            throw new Error('No encontré filas para este ID: ' + idBuscado);
+          }
+
+          titulo.textContent = nombreTorneo + ' - ' + modalidad;
+          estado.innerHTML = '<span class="ok">Fecha:</span> ' + fecha + ' | <span class="ok">Filas encontradas:</span> ' + encontrados.length;
+
+          let html = '<table><tr><th>Categoría</th><th>Jugador</th><th>Gross</th><th>Hcp</th><th>Neto</th><th>Total</th></tr>';
+
+          for (const j of encontrados) {
+            html += `<tr>
+              <td>${j.categoria}</td>
+              <td>${j.jugador}</td>
+              <td>${j.gross}</td>
+              <td>${j.hcp}</td>
+              <td>${j.neto}</td>
+              <td>${j.total}</td>
+            </tr>`;
+          }
+
+          html += '</table>';
+          contenido.innerHTML = html;
+        })
+        .catch(err => {
+          estado.innerHTML = '<div class="error">Error: ' + err.message + '</div>';
         });
-
-        if (encontrados === 0) {
-            throw new Error('No se encontraron filas para este torneo. ID recibido: ' + idBuscado);
-        }
-
-        titulo.textContent = `${nombreTorneo} - ${modalidadTorneo}`;
-        estado.textContent = `Fecha: ${fechaTorneo} | Registros encontrados: ${encontrados}`;
-
-        let html = '';
-
-        for (const cat in categorias) {
-            const jugadores = categorias[cat];
-
-            const validos = jugadores.filter(j => j.total !== 'NPT' && j.total !== 'DESC' && j.total !== '');
-            const noValidos = jugadores.filter(j => j.total === 'NPT' || j.total === 'DESC' || j.total === '');
-
-            validos.sort((a, b) => Number(a.total) - Number(b.total));
-
-            const listaFinal = [...validos, ...noValidos];
-
-            html += `<h2>${cat}</h2>`;
-            html += `<div class="tabla-wrap"><table>
-                <tr>
-                    <th>Pos</th>
-                    <th>Jugador</th>
-                    <th>Gross</th>
-                    <th>Hcp</th>
-                    <th>Neto</th>
-                    <th>Total</th>
-                </tr>`;
-
-            let pos = 1;
-
-            listaFinal.forEach(j => {
-                const esValido = !(j.total === 'NPT' || j.total === 'DESC' || j.total === '');
-                const posicion = esValido ? pos++ : '';
-
-                html += `
-                <tr>
-                    <td>${posicion}</td>
-                    <td>${j.jugador}</td>
-                    <td>${j.gross}</td>
-                    <td>${j.hcp}</td>
-                    <td>${j.neto}</td>
-                    <td>${j.total}</td>
-                </tr>`;
-            });
-
-            html += `</table></div>`;
-        }
-
-        contenido.innerHTML = html;
-    })
-    .catch(err => {
-        estado.innerHTML = '<div class="error">Error: ' + err.message + '</div>';
-    });
-}
-</script>
-
+    }
+  </script>
 </body>
 </html>
