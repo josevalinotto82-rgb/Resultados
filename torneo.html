@@ -2,28 +2,65 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Resultados</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resultados del Torneo</title>
 
 <style>
-body {font-family: Arial; background:#f5f5f5; margin:0;}
-.container {max-width:1000px; margin:auto; padding:20px;}
-h2 {margin-top:30px;}
-
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+}
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
+}
+h1 {
+    margin-bottom: 10px;
+}
+h2 {
+    margin-top: 30px;
+}
+.msg {
+    background: white;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+.error {
+    color: #b00020;
+    white-space: pre-wrap;
+}
 table {
-    width:100%;
-    border-collapse:collapse;
-    background:white;
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    margin-bottom: 20px;
 }
-
 th, td {
-    padding:8px;
-    border-bottom:1px solid #ddd;
-    text-align:center;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
 }
-
 th {
-    background:#1e7d3b;
-    color:white;
+    background: #1e7d3b;
+    color: white;
+}
+.volver {
+    display: inline-block;
+    margin-bottom: 15px;
+    text-decoration: none;
+    color: #1e7d3b;
+    font-weight: bold;
+}
+@media (max-width: 768px) {
+    .tabla-wrap {
+        overflow-x: auto;
+    }
+    table {
+        min-width: 700px;
+    }
 }
 </style>
 </head>
@@ -31,94 +68,132 @@ th {
 <body>
 
 <div class="container">
-<h1 id="titulo"></h1>
-<div id="contenido"></div>
+    <a class="volver" href="./index.html">← Volver a torneos</a>
+    <h1 id="titulo">Resultados</h1>
+    <div id="estado" class="msg">Cargando torneo...</div>
+    <div id="contenido"></div>
 </div>
 
 <script>
-let params = new URLSearchParams(window.location.search);
-let idBuscado = params.get("id");
+const params = new URLSearchParams(window.location.search);
+const idBuscado = (params.get("id") || "").trim();
 
-fetch('RESULTADOS.csv')
-.then(res => res.text())
-.then(data => {
+const titulo = document.getElementById("titulo");
+const estado = document.getElementById("estado");
+const contenido = document.getElementById("contenido");
 
-    let filas = data.split('\n').slice(1);
-    let categorias = {};
-
-    filas.forEach(fila => {
-        let col = fila.split(';');
-
-        if(col[0] === idBuscado){
-
-            let categoria = col[4];
-
-            if(!categorias[categoria]){
-                categorias[categoria] = [];
-            }
-
-            categorias[categoria].push({
-                jugador: col[6],
-                gross: col[10],
-                hcp: col[11],
-                neto: col[12],
-                total: col[13]
-            });
-
-            document.getElementById('titulo').innerText = col[2] + " - " + col[3];
+if (!idBuscado) {
+    estado.innerHTML = '<div class="error">No llegó el ID del torneo en la URL.</div>';
+} else {
+    fetch('./RESULTADOS.csv', { cache: 'no-store' })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error('No se pudo abrir RESULTADOS.csv. Estado HTTP: ' + res.status);
         }
-    });
+        return res.text();
+    })
+    .then(data => {
+        const texto = data.replace(/\r/g, '').trim();
 
-    let html = '';
+        if (!texto) {
+            throw new Error('RESULTADOS.csv está vacío.');
+        }
 
-    for(let cat in categorias){
+        const filas = texto.split('\n');
+        filas.shift(); // sacar encabezado
 
-        let jugadores = categorias[cat];
+        const categorias = {};
+        let encontrados = 0;
+        let nombreTorneo = '';
+        let modalidadTorneo = '';
+        let fechaTorneo = '';
 
-        // separar válidos de NPT/DESC
-        let validos = jugadores.filter(j => j.total !== "NPT" && j.total !== "DESC");
-        let noValidos = jugadores.filter(j => j.total === "NPT" || j.total === "DESC");
+        filas.forEach(fila => {
+            if (!fila.trim()) return;
 
-        // ordenar válidos
-        validos.sort((a,b) => Number(a.total) - Number(b.total));
+            const col = fila.split(';');
 
-        // unir
-        let listaFinal = [...validos, ...noValidos];
+            const idFila = (col[0] || '').trim();
 
-        html += `<h2>${cat}</h2>`;
-        html += `<table>
-        <tr>
-            <th>Pos</th>
-            <th>Jugador</th>
-            <th>Gross</th>
-            <th>Hcp</th>
-            <th>Neto</th>
-            <th>Total</th>
-        </tr>`;
+            if (idFila === idBuscado) {
+                encontrados++;
 
-        let pos = 1;
+                fechaTorneo = (col[1] || '').trim();
+                nombreTorneo = (col[2] || '').trim();
+                modalidadTorneo = (col[3] || '').trim();
 
-        listaFinal.forEach(j => {
+                const categoria = (col[4] || 'Sin categoría').trim();
 
-            let posicion = (j.total === "NPT" || j.total === "DESC") ? "" : pos++;
+                if (!categorias[categoria]) {
+                    categorias[categoria] = [];
+                }
 
-            html += `
-            <tr>
-                <td>${posicion}</td>
-                <td>${j.jugador}</td>
-                <td>${j.gross}</td>
-                <td>${j.hcp}</td>
-                <td>${j.neto}</td>
-                <td>${j.total}</td>
-            </tr>`;
+                categorias[categoria].push({
+                    jugador: (col[6] || '').trim(),
+                    gross: (col[10] || '').trim(),
+                    hcp: (col[11] || '').trim(),
+                    neto: (col[12] || '').trim(),
+                    total: (col[13] || '').trim()
+                });
+            }
         });
 
-        html += `</table>`;
-    }
+        if (encontrados === 0) {
+            throw new Error('No se encontraron filas para este torneo. ID recibido: ' + idBuscado);
+        }
 
-    document.getElementById('contenido').innerHTML = html;
+        titulo.textContent = `${nombreTorneo} - ${modalidadTorneo}`;
+        estado.textContent = `Fecha: ${fechaTorneo} | Registros encontrados: ${encontrados}`;
 
-});
+        let html = '';
+
+        for (const cat in categorias) {
+            const jugadores = categorias[cat];
+
+            const validos = jugadores.filter(j => j.total !== 'NPT' && j.total !== 'DESC' && j.total !== '');
+            const noValidos = jugadores.filter(j => j.total === 'NPT' || j.total === 'DESC' || j.total === '');
+
+            validos.sort((a, b) => Number(a.total) - Number(b.total));
+
+            const listaFinal = [...validos, ...noValidos];
+
+            html += `<h2>${cat}</h2>`;
+            html += `<div class="tabla-wrap"><table>
+                <tr>
+                    <th>Pos</th>
+                    <th>Jugador</th>
+                    <th>Gross</th>
+                    <th>Hcp</th>
+                    <th>Neto</th>
+                    <th>Total</th>
+                </tr>`;
+
+            let pos = 1;
+
+            listaFinal.forEach(j => {
+                const esValido = !(j.total === 'NPT' || j.total === 'DESC' || j.total === '');
+                const posicion = esValido ? pos++ : '';
+
+                html += `
+                <tr>
+                    <td>${posicion}</td>
+                    <td>${j.jugador}</td>
+                    <td>${j.gross}</td>
+                    <td>${j.hcp}</td>
+                    <td>${j.neto}</td>
+                    <td>${j.total}</td>
+                </tr>`;
+            });
+
+            html += `</table></div>`;
+        }
+
+        contenido.innerHTML = html;
+    })
+    .catch(err => {
+        estado.innerHTML = '<div class="error">Error: ' + err.message + '</div>';
+    });
+}
 </script>
 
 </body>
