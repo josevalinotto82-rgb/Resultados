@@ -55,21 +55,9 @@
       font-size: 15px;
     }
 
-    .page-title {
-      margin: 18px 0 8px;
-      font-size: 32px;
-      font-weight: 700;
-    }
-
-    .page-text {
-      margin: 0;
-      color: #374151;
-      font-size: 16px;
-    }
-
     .tools {
       display: grid;
-      grid-template-columns: 1fr 220px;
+      grid-template-columns: 1fr 180px 180px;
       gap: 12px;
       margin-bottom: 16px;
     }
@@ -167,6 +155,12 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
 
+    @media (max-width: 920px) {
+      .tools {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 760px) {
       .container {
         padding: 18px 12px 32px;
@@ -178,14 +172,6 @@
 
       .club-title {
         font-size: 21px;
-      }
-
-      .page-title {
-        font-size: 28px;
-      }
-
-      .tools {
-        grid-template-columns: 1fr;
       }
 
       .torneo {
@@ -212,9 +198,19 @@
     </div>
 
     <div class="tools">
-      <input type="text" id="buscador" placeholder="Buscar torneo...">
+      <input type="text" id="buscador" placeholder="Buscar torneo o jugador...">
       <select id="filtroAnio">
         <option value="">Todos los años</option>
+      </select>
+      <select id="filtroDia">
+        <option value="">Todos los días</option>
+        <option value="0">Domingo</option>
+        <option value="1">Lunes</option>
+        <option value="2">Martes</option>
+        <option value="3">Miércoles</option>
+        <option value="4">Jueves</option>
+        <option value="5">Viernes</option>
+        <option value="6">Sábado</option>
       </select>
     </div>
 
@@ -224,11 +220,31 @@
 
   <script>
     let torneos = [];
+    let resultados = [];
+    let idsPorJugador = {};
 
     function extraerAnio(fecha) {
       if (!fecha) return "";
       const partes = fecha.split("/");
       return partes.length === 3 ? partes[2] : "";
+    }
+
+    function fechaAObjeto(fecha) {
+      if (!fecha) return null;
+      const partes = fecha.split("/");
+      if (partes.length !== 3) return null;
+
+      const dia = Number(partes[0]);
+      const mes = Number(partes[1]) - 1;
+      const anio = Number(partes[2]);
+
+      return new Date(anio, mes, dia);
+    }
+
+    function obtenerDiaSemana(fecha) {
+      const f = fechaAObjeto(fecha);
+      if (!f || Number.isNaN(f.getTime())) return "";
+      return String(f.getDay());
     }
 
     function irATorneo(id) {
@@ -241,21 +257,75 @@
         : `${cantidad} torneos encontrados`;
     }
 
+    function normalizarTexto(texto) {
+      return String(texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
+    function construirIndiceJugadores() {
+      idsPorJugador = {};
+
+      resultados.forEach(r => {
+        const jugador = normalizarTexto(r.JUGADOR);
+        const id = r.ID;
+
+        if (!jugador || !id) return;
+
+        if (!idsPorJugador[jugador]) {
+          idsPorJugador[jugador] = new Set();
+        }
+
+        idsPorJugador[jugador].add(id);
+      });
+    }
+
+    function buscarIdsPorJugador(textoBusqueda) {
+      if (!textoBusqueda) return new Set();
+
+      const ids = new Set();
+
+      Object.keys(idsPorJugador).forEach(nombreJugador => {
+        if (nombreJugador.includes(textoBusqueda)) {
+          idsPorJugador[nombreJugador].forEach(id => ids.add(id));
+        }
+      });
+
+      return ids;
+    }
+
     function renderTorneos() {
-      const texto = document.getElementById("buscador").value.trim().toLowerCase();
+      const textoOriginal = document.getElementById("buscador").value;
+      const texto = normalizarTexto(textoOriginal);
       const anio = document.getElementById("filtroAnio").value;
+      const dia = document.getElementById("filtroDia").value;
       const lista = document.getElementById("lista");
       const status = document.getElementById("status");
 
+      const idsJugador = buscarIdsPorJugador(texto);
+
       const filtrados = torneos.filter(t => {
-        const coincideTexto =
-          t.TORNEO.toLowerCase().includes(texto) ||
-          t.MODALIDAD.toLowerCase().includes(texto) ||
-          t.FECHA.toLowerCase().includes(texto);
+        const torneoTexto = normalizarTexto(t.TORNEO);
+        const modalidadTexto = normalizarTexto(t.MODALIDAD);
+        const fechaTexto = normalizarTexto(t.FECHA);
 
+        const coincideTextoDirecto =
+          !texto ||
+          torneoTexto.includes(texto) ||
+          modalidadTexto.includes(texto) ||
+          fechaTexto.includes(texto);
+
+        const coincideJugador =
+          !texto ||
+          idsJugador.has(t.ID);
+
+        const coincideBusqueda = !texto || coincideTextoDirecto || coincideJugador;
         const coincideAnio = !anio || extraerAnio(t.FECHA) === anio;
+        const coincideDia = !dia || obtenerDiaSemana(t.FECHA) === dia;
 
-        return coincideTexto && coincideAnio;
+        return coincideBusqueda && coincideAnio && coincideDia;
       });
 
       status.textContent = textoContador(filtrados.length);
@@ -277,49 +347,68 @@
       `).join("");
     }
 
-    fetch("./INDEX.csv?v=" + Date.now())
-      .then(r => {
+    Promise.all([
+      fetch("./INDEX.csv?v=" + Date.now()).then(r => {
         if (!r.ok) throw new Error("No se pudo abrir INDEX.csv");
         return r.text();
+      }),
+      fetch("./RESULTADOS.csv?v=" + Date.now()).then(r => {
+        if (!r.ok) throw new Error("No se pudo abrir RESULTADOS.csv");
+        return r.text();
       })
-      .then(texto => {
-        const filas = texto.replace(/\r/g, "").trim().split("\n");
-        filas.shift();
+    ])
+    .then(([indexTexto, resultadosTexto]) => {
+      const filasIndex = indexTexto.replace(/\r/g, "").trim().split("\n");
+      filasIndex.shift();
 
-        torneos = filas
-          .filter(f => f.trim() !== "")
-          .map(f => {
-            const c = f.split(";");
-            return {
-              ID: (c[0] || "").trim(),
-              FECHA: (c[1] || "").trim(),
-              TORNEO: (c[2] || "").trim(),
-              MODALIDAD: (c[3] || "").trim()
-            };
-          });
-
-        torneos.sort((a, b) => {
-          const pa = a.FECHA.split("/");
-          const pb = b.FECHA.split("/");
-          const da = new Date(`${pa[2]}-${pa[1]}-${pa[0]}`);
-          const db = new Date(`${pb[2]}-${pb[1]}-${pb[0]}`);
-          return db - da;
+      torneos = filasIndex
+        .filter(f => f.trim() !== "")
+        .map(f => {
+          const c = f.split(";");
+          return {
+            ID: (c[0] || "").trim(),
+            FECHA: (c[1] || "").trim(),
+            TORNEO: (c[2] || "").trim(),
+            MODALIDAD: (c[3] || "").trim()
+          };
         });
 
-        const anios = [...new Set(torneos.map(t => extraerAnio(t.FECHA)).filter(Boolean))]
-          .sort((a, b) => b.localeCompare(a));
-
-        const filtroAnio = document.getElementById("filtroAnio");
-        filtroAnio.innerHTML += anios.map(a => `<option value="${a}">${a}</option>`).join("");
-
-        document.getElementById("buscador").addEventListener("input", renderTorneos);
-        document.getElementById("filtroAnio").addEventListener("change", renderTorneos);
-
-        renderTorneos();
-      })
-      .catch(err => {
-        document.getElementById("status").textContent = "Error: " + err.message;
+      torneos.sort((a, b) => {
+        const da = fechaAObjeto(a.FECHA);
+        const db = fechaAObjeto(b.FECHA);
+        return db - da;
       });
+
+      const filasResultados = resultadosTexto.replace(/\r/g, "").trim().split("\n");
+      filasResultados.shift();
+
+      resultados = filasResultados
+        .filter(f => f.trim() !== "")
+        .map(f => {
+          const c = f.split(";");
+          return {
+            ID: (c[0] || "").trim(),
+            JUGADOR: (c[6] || "").trim()
+          };
+        });
+
+      construirIndiceJugadores();
+
+      const anios = [...new Set(torneos.map(t => extraerAnio(t.FECHA)).filter(Boolean))]
+        .sort((a, b) => b.localeCompare(a));
+
+      const filtroAnio = document.getElementById("filtroAnio");
+      filtroAnio.innerHTML += anios.map(a => `<option value="${a}">${a}</option>`).join("");
+
+      document.getElementById("buscador").addEventListener("input", renderTorneos);
+      document.getElementById("filtroAnio").addEventListener("change", renderTorneos);
+      document.getElementById("filtroDia").addEventListener("change", renderTorneos);
+
+      renderTorneos();
+    })
+    .catch(err => {
+      document.getElementById("status").textContent = "Error: " + err.message;
+    });
   </script>
 </body>
 </html>
