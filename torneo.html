@@ -137,8 +137,8 @@
     }
 
     function esNoValido(total) {
-  const t = String(total || "").trim().toUpperCase();
-  return t === "NPT" || t === "DESC" || t === "" || t === "0" || t === "0.0" || t === "0,0";
+  const t = String(total || "").trim().toUpperCase().replace(",", ".");
+  return t === "NPT" || t === "DESC" || t === "" || t === "0" || t === "0.0" || t === "0.00";
 }
 
     function esModalidadPareja(modalidad) {
@@ -242,12 +242,11 @@
           let listaFinal = [];
 
 if (esModalidadPareja(primero.MODALIDAD)) {
-  const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
-  const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
-
-  // En Four Ball respetamos el orden original dentro de cada grupo,
-  // pero mandamos al final los que tienen 0, NPT, DESC o vacío.
-  listaFinal = [...validos, ...noValidos];
+  listaFinal = jugadores.slice().sort((a, b) => {
+    const aInvalido = esNoValido(a.TOTAL) ? 1 : 0;
+    const bInvalido = esNoValido(b.TOTAL) ? 1 : 0;
+    return aInvalido - bInvalido;
+  });
 } else {
   const validos = jugadores.filter(j => !esNoValido(j.TOTAL));
   const noValidos = jugadores.filter(j => esNoValido(j.TOTAL));
@@ -288,7 +287,7 @@ if (esModalidadPareja(primero.MODALIDAD)) {
 
           listaFinal.forEach(j => {
             const invalido = esNoValido(j.TOTAL);
-            const posMostrar = j.POSICION || (invalido ? "" : posicion++);
+            const posMostrar = invalido ? "" : (j.POSICION || posicion++);
             html += `
               <tr class="${invalido ? 'novalido' : ''}">
                 <td>${posMostrar}</td>
