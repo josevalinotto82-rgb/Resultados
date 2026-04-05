@@ -1,119 +1,260 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Torneos</title>
-<style>
-body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; }
-.container { max-width:900px; margin:auto; padding:20px; }
-.torneo {
-    background:white;
-    padding:15px;
-    margin-bottom:10px;
-    border-radius:8px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-}
-button {
-    padding:8px 12px;
-    background:#1e7d3b;
-    color:white;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    white-space:nowrap;
-}
-.debug {
-    color:#777;
-    font-size:12px;
-    margin-top:4px;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torneos - Villa María Golf</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    .header p {
+      margin: 0;
+      color: #6b7280;
+    }
+
+    .tools {
+      display: grid;
+      grid-template-columns: 1fr 180px;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .tools input,
+    .tools select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+      background: white;
+    }
+
+    .status {
+      margin-bottom: 16px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .lista {
+      display: grid;
+      gap: 12px;
+    }
+
+    .torneo {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .torneo-info {
+      min-width: 0;
+    }
+
+    .fecha {
+      display: inline-block;
+      font-size: 13px;
+      color: #166534;
+      background: #dcfce7;
+      padding: 4px 8px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .nombre {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .modalidad {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .ver-btn {
+      border: none;
+      background: #166534;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .ver-btn:hover {
+      background: #14532d;
+    }
+
+    .empty {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      color: #6b7280;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    @media (max-width: 700px) {
+      .tools {
+        grid-template-columns: 1fr;
+      }
+
+      .torneo {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .ver-btn {
+        width: 100%;
+      }
+
+      .header h1 {
+        font-size: 26px;
+      }
+
+      .nombre {
+        font-size: 16px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <div class="header">
+      <h1>Torneos</h1>
+      <p>Resultados históricos del Villa María Golf</p>
+    </div>
 
-<div class="container">
-    <h1>Torneos</h1>
-    <div id="estado">Cargando...</div>
-    <div id="lista"></div>
-</div>
+    <div class="tools">
+      <input type="text" id="buscador" placeholder="Buscar torneo...">
+      <select id="filtroAnio">
+        <option value="">Todos los años</option>
+      </select>
+    </div>
 
-<script>
-function normalizarTexto(texto) {
-    return (texto || '')
-        .trim()
-        .toUpperCase()
-        .replace(/Á/g, 'A')
-        .replace(/É/g, 'E')
-        .replace(/Í/g, 'I')
-        .replace(/Ó/g, 'O')
-        .replace(/Ú/g, 'U')
-        .replace(/Ü/g, 'U')
-        .replace(/Ñ/g, 'N')
-        .replace(/[^A-Z0-9]/g, '');
-}
+    <div id="status" class="status">Cargando torneos...</div>
+    <div id="lista" class="lista"></div>
+  </div>
 
-function fechaAId(fecha) {
-    const partes = (fecha || '').trim().split('/');
-    if (partes.length !== 3) return '';
-    const dd = partes[0].padStart(2, '0');
-    const mm = partes[1].padStart(2, '0');
-    const yyyy = partes[2];
-    return yyyy + mm + dd;
-}
+  <script>
+    let torneos = [];
 
-function construirId(fecha, torneo) {
-    return fechaAId(fecha) + "_" + normalizarTexto(torneo);
-}
+    function extraerAnio(fecha) {
+      if (!fecha) return "";
+      const partes = fecha.split("/");
+      return partes.length === 3 ? partes[2] : "";
+    }
 
-function verTorneo(id) {
-    window.location.href = "torneo.html?id=" + encodeURIComponent(id);
-}
+    function irATorneo(id) {
+      window.location.href = "torneo.html?id=" + encodeURIComponent(id);
+    }
 
-fetch('./INDEX.csv?v=' + Date.now())
-.then(res => {
-    if (!res.ok) throw new Error('No se pudo abrir INDEX.csv. HTTP ' + res.status);
-    return res.text();
-})
-.then(data => {
-    const filas = data.replace(/\r/g, '').split('\n').slice(1);
-    let html = '';
+    function renderTorneos() {
+      const texto = document.getElementById("buscador").value.trim().toLowerCase();
+      const anio = document.getElementById("filtroAnio").value;
+      const lista = document.getElementById("lista");
+      const status = document.getElementById("status");
 
-    filas.forEach(fila => {
-        if (!fila.trim()) return;
+      const filtrados = torneos.filter(t => {
+        const coincideTexto =
+          t.TORNEO.toLowerCase().includes(texto) ||
+          t.MODALIDAD.toLowerCase().includes(texto) ||
+          t.FECHA.toLowerCase().includes(texto);
 
-        const col = fila.split(';');
+        const coincideAnio = !anio || extraerAnio(t.FECHA) === anio;
 
-        if (col.length >= 3) {
-            const fecha = (col[0] || '').trim();
-            const torneo = (col[1] || '').trim();
-            const modalidad = (col[2] || '').trim();
-            const id = construirId(fecha, torneo);
+        return coincideTexto && coincideAnio;
+      });
 
-            html += `
-                <div class="torneo">
-                    <div>
-                        <b>${fecha}</b><br>
-                        ${torneo}<br>
-                        <small>${modalidad}</small>
-                        <div class="debug">ID armado: ${id}</div>
-                    </div>
-                    <button onclick="verTorneo('${id}')">Ver</button>
-                </div>
-            `;
-        }
-    });
+      status.textContent = `${filtrados.length} torneo(s) encontrado(s)`;
 
-    document.getElementById('estado').innerText = '';
-    document.getElementById('lista').innerHTML = html;
-})
-.catch(err => {
-    document.getElementById('estado').innerText = 'Error: ' + err.message;
-});
-</script>
+      if (filtrados.length === 0) {
+        lista.innerHTML = `<div class="empty">No se encontraron torneos con esos filtros.</div>`;
+        return;
+      }
 
+      lista.innerHTML = filtrados.map(t => `
+        <div class="torneo">
+          <div class="torneo-info">
+            <div class="fecha">${t.FECHA}</div>
+            <div class="nombre">${t.TORNEO}</div>
+            <div class="modalidad">${t.MODALIDAD}</div>
+          </div>
+          <button class="ver-btn" onclick="irATorneo('${String(t.ID).replace(/'/g, "\\'")}')">Ver resultados</button>
+        </div>
+      `).join("");
+    }
+
+    fetch("./INDEX.csv?v=" + Date.now())
+      .then(r => {
+        if (!r.ok) throw new Error("No se pudo abrir INDEX.csv");
+        return r.text();
+      })
+      .then(texto => {
+        const filas = texto.replace(/\r/g, "").trim().split("\n");
+        const encabezados = filas.shift().split(";");
+
+        torneos = filas
+          .filter(f => f.trim() !== "")
+          .map(f => {
+            const c = f.split(";");
+            return {
+              ID: (c[0] || "").trim(),
+              FECHA: (c[1] || "").trim(),
+              TORNEO: (c[2] || "").trim(),
+              MODALIDAD: (c[3] || "").trim()
+            };
+          });
+
+        torneos.sort((a, b) => {
+          const pa = a.FECHA.split("/");
+          const pb = b.FECHA.split("/");
+          const da = new Date(`${pa[2]}-${pa[1]}-${pa[0]}`);
+          const db = new Date(`${pb[2]}-${pb[1]}-${pb[0]}`);
+          return db - da;
+        });
+
+        const anios = [...new Set(torneos.map(t => extraerAnio(t.FECHA)).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+        const filtroAnio = document.getElementById("filtroAnio");
+        filtroAnio.innerHTML += anios.map(a => `<option value="${a}">${a}</option>`).join("");
+
+        document.getElementById("buscador").addEventListener("input", renderTorneos);
+        document.getElementById("filtroAnio").addEventListener("change", renderTorneos);
+
+        renderTorneos();
+      })
+      .catch(err => {
+        document.getElementById("status").textContent = "Error: " + err.message;
+      });
+  </script>
 </body>
 </html>
