@@ -114,10 +114,6 @@
       font-weight: 700;
     }
 
-    .estado {
-      color: #6b7280;
-    }
-
     .empty {
       background: white;
       border-radius: 14px;
@@ -270,7 +266,6 @@
         if (registros.length === 0) {
           document.getElementById("titulo").textContent = "Torneo no encontrado";
           document.getElementById("subtitulo").textContent = "";
-          document.getElementById("estado").textContent = "No se encontraron resultados para ese ID.";
           document.getElementById("contenido").innerHTML = `<div class="empty">No hay datos para mostrar.</div>`;
           return;
         }
@@ -278,7 +273,6 @@
         const primero = registros[0];
         document.getElementById("titulo").textContent = primero.TORNEO;
         document.getElementById("subtitulo").textContent = `${primero.FECHA} · ${primero.MODALIDAD}`;
-        document.getElementById("estado").textContent = "";
 
         const categorias = {};
         registros.forEach(r => {
@@ -373,8 +367,7 @@
       })
       .catch(err => {
         document.getElementById("titulo").textContent = "Error";
-        document.getElementById("subtitulo").textContent = "";
-        document.getElementById("estado").textContent = err.message;
+        document.getElementById("subtitulo").textContent = err.message;
         document.getElementById("contenido").innerHTML = `<div class="empty">No se pudieron cargar los resultados.</div>`;
       });
   </script>
