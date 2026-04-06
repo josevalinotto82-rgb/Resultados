@@ -74,11 +74,18 @@
     }
 
     .subtitulo {
-      color: #6b7280;
+      color: #111827;
       font-size: 15px;
-      margin: 0 0 14px;
+      margin: 0;
+      font-weight: 700;
     }
 
+    .categoria {
+      color: #6b7280;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    
     .datos-linea {
       display: flex;
       gap: 24px;
@@ -345,6 +352,7 @@
 
       <h1 id="titulo" class="titulo">Cargando tarjeta...</h1>
       <p id="subtitulo" class="subtitulo"></p>
+      <p id="categoria" class="categoria"></p>
       <div id="datosLinea" class="datos-linea"></div>
     </div>
 
@@ -617,7 +625,8 @@
 
         if (registros.length === 0) {
           document.getElementById("titulo").textContent = "Tarjeta no encontrada";
-          document.getElementById("subtitulo").textContent = "";
+          document.getElementById("subtitulo").textContent = jugador.TORNEO;
+          document.getElementById("categoria").textContent = `${jugador.CATEGORIA} · ${jugador.FECHA}`;
           document.getElementById("tarjetaBox").innerHTML = `<div class="empty">No hay datos para mostrar.</div>`;
           return;
         }
