@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tarjeta del jugador - Beta</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f8f3;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 1250px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    .back {
+      display: inline-block;
+      margin-bottom: 18px;
+      text-decoration: none;
+      color: #166534;
+      font-weight: bold;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 18px;
+    }
+
+    .club-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .escudo {
+      height: 56px;
+      width: auto;
+      display: block;
+    }
+
+    .club-name {
+      margin: 0;
+      font-size: 22px;
+      color: #3e5740;
+      line-height: 1.1;
+    }
+
+    .beta-badge {
+      display: inline-block;
+      margin-top: 6px;
+      background: #166534;
+      color: white;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .titulo {
+      margin: 0 0 8px;
+      font-size: 28px;
+      text-transform: uppercase;
+    }
+
+    .subtitulo {
+      color: #6b7280;
+      font-size: 15px;
+      margin: 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .meta-item {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .meta-label {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .meta-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1f2937;
+      word-break: break-word;
+    }
+
+    .tabla-wrap {
+      overflow-x: auto;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1100px;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background: #166534;
+      color: white;
+    }
+
+    td.label {
+      text-align: left;
+      font-weight: 700;
+      background: #f8fafc;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    }
+
+    .resaltado {
+      background: #ecfdf5;
+      font-weight: 700;
+    }
+
+    .score {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 34px;
+      padding: 0 8px;
+      font-weight: 700;
+      line-height: 1;
+      color: #1f2937;
+    }
+
+    .par {
+      border: none;
+    }
+
+    .birdie {
+      border: 2px solid #166534;
+      border-radius: 50%;
+    }
+
+    .eagle {
+      border: 5px double #166534;
+      border-radius: 50%;
+    }
+
+    .bogey {
+      border: 2px solid #b45309;
+      border-radius: 6px;
+    }
+
+    .double-bogey {
+      border: 5px double #b45309;
+      border-radius: 8px;
+    }
+
+    .leyenda,
+    .desempate-box {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 18px;
+    }
+
+    .leyenda h3,
+    .desempate-box h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+
+    .leyenda-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    .desempate-linea {
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .empty {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      color: #6b7280;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    @media (max-width: 980px) {
+      .meta-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .leyenda-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .meta-grid,
+      .leyenda-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .titulo {
+        font-size: 22px;
+      }
+
+      .club-name {
+        font-size: 20px;
+      }
+
+      .escudo {
+        height: 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a id="volverLink" class="back" href="./index-beta.html">← Volver</a>
+
+    <div class="card">
+      <div class="club-row">
+        <img src="escudo-beta.png" alt="Escudo Villa María Golf" class="escudo">
+        <div>
+          <h1 class="club-name">Villa María Golf</h1>
+          <span class="beta-badge">VERSIÓN BETA</span>
+        </div>
+      </div>
+
+      <h1 id="titulo" class="titulo">Cargando tarjeta...</h1>
+      <p id="subtitulo" class="subtitulo"></p>
+
+      <div id="metaGrid" class="meta-grid"></div>
+    </div>
+
+    <div id="desempateBox"></div>
+    <div id="tarjetaBox"></div>
+
+    <div class="leyenda">
+      <h3>Referencia de score</h3>
+      <div class="leyenda-grid">
+        <div class="leyenda-item"><span class="score par">4</span> <span>Par</span></div>
+        <div class="leyenda-item"><span class="score birdie">3</span> <span>1 golpe menos</span></div>
+        <div class="leyenda-item"><span class="score eagle">2</span> <span>2 o más menos</span></div>
+        <div class="leyenda-item"><span class="score bogey">5</span> <span>1 golpe más</span></div>
+        <div class="leyenda-item"><span class="score double-bogey">6</span> <span>2 o más más</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const idBuscado = (params.get("id") || "").trim();
+    const jugadorBuscado = (params.get("jugador") || "").trim();
+    const categoriaBuscada = (params.get("categoria") || "").trim();
+
+    const HOYOS = [
+      { h: 1,  par: 4, hp: 15 },
+      { h: 2,  par: 4, hp: 3  },
+      { h: 3,  par: 3, hp: 5  },
+      { h: 4,  par: 4, hp: 11 },
+      { h: 5,  par: 3, hp: 9  },
+      { h: 6,  par: 4, hp: 1  },
+      { h: 7,  par: 4, hp: 13 },
+      { h: 8,  par: 4, hp: 7  },
+      { h: 9,  par: 5, hp: 17 },
+      { h: 10, par: 4, hp: 8  },
+      { h: 11, par: 3, hp: 14 },
+      { h: 12, par: 5, hp: 10 },
+      { h: 13, par: 3, hp: 2  },
+      { h: 14, par: 4, hp: 16 },
+      { h: 15, par: 4, hp: 18 },
+      { h: 16, par: 4, hp: 6  },
+      { h: 17, par: 5, hp: 12 },
+      { h: 18, par: 4, hp: 4  }
+    ];
+
+    const PAR_IDA = 35;
+    const PAR_VUELTA = 36;
+    const PAR_TOTAL = 71;
+
+    function normalizarTexto(texto) {
+      return String(texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[,.;:()]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function parseNumero(valor) {
+      if (valor === undefined || valor === null) return null;
+      const limpio = String(valor).trim().replace(",", ".");
+      if (limpio === "" || limpio.toUpperCase() === "NPT" || limpio.toUpperCase() === "DESC") return null;
+      const n = Number(limpio);
+      return Number.isNaN(n) ? null : n;
+    }
+
+    function n(valor) {
+      const x = Number(String(valor || "").trim().replace(",", "."));
+      return Number.isNaN(x) ? 0 : x;
+    }
+
+    function esNoValido(total) {
+      const t = String(total || "").trim().toUpperCase().replace(",", ".");
+      return t === "NPT" || t === "DESC" || t === "" || t === "0" || t === "0.0" || t === "0.00";
+    }
+
+    function sumaHoyos(jugador, desde, hasta) {
+      let total = 0;
+      for (let i = desde; i <= hasta; i++) {
+        total += n(jugador["H" + i]);
+      }
+      return total;
+    }
+
+    function valorPrincipal(j) {
+      const neto1 = parseNumero(j["NETO 1"]);
+      const neto2 = parseNumero(j["NETO 2"]);
+      const neto = parseNumero(j.NETO);
+      const total = parseNumero(j.TOTAL);
+
+      if (neto1 !== null) return neto1;
+      if (neto2 !== null) return neto2;
+      if (neto !== null) return neto;
+      if (total !== null) return total;
+      return 999999;
+    }
+
+    function tieneNetoParcial(j) {
+      return String(j["NETO 1"] || "").trim() !== "" || String(j["NETO 2"] || "").trim() !== "";
+    }
+
+    function compararJugadores(a, b) {
+      const aInvalido = esNoValido(a.TOTAL) ? 1 : 0;
+      const bInvalido = esNoValido(b.TOTAL) ? 1 : 0;
+      if (aInvalido !== bInvalido) return aInvalido - bInvalido;
+
+      const aPrincipal = valorPrincipal(a);
+      const bPrincipal = valorPrincipal(b);
+
+      if (aPrincipal !== bPrincipal) return aPrincipal - bPrincipal;
+
+      const aSinParciales = !tieneNetoParcial(a);
+      const bSinParciales = !tieneNetoParcial(b);
+
+      if (aSinParciales && bSinParciales) {
+        const criterios = [
+          [10, 18, "segunda vuelta"],
+          [13, 18, "últimos 6 hoyos"],
+          [16, 18, "últimos 3 hoyos"],
+          [17, 18, "últimos 2 hoyos"],
+          [18, 18, "último hoyo"]
+        ];
+
+        for (const [desde, hasta] of criterios) {
+          const sa = sumaHoyos(a, desde, hasta);
+          const sb = sumaHoyos(b, desde, hasta);
+          if (sa !== sb) return sa - sb;
+        }
+      }
+
+      return normalizarTexto(a.JUGADOR).localeCompare(normalizarTexto(b.JUGADOR));
+    }
+
+    function obtenerDetalleDesempate(jugador, rivalesEmpatados) {
+      if (!rivalesEmpatados || rivalesEmpatados.length === 0) return null;
+      if (tieneNetoParcial(jugador)) return null;
+
+      const criterios = [
+        { desde: 10, hasta: 18, nombre: "Segunda vuelta" },
+        { desde: 13, hasta: 18, nombre: "Últimos 6 hoyos" },
+        { desde: 16, hasta: 18, nombre: "Últimos 3 hoyos" },
+        { desde: 17, hasta: 18, nombre: "Últimos 2 hoyos" },
+        { desde: 18, hasta: 18, nombre: "Último hoyo" }
+      ];
+
+      for (const rival of rivalesEmpatados) {
+        let huboEmpatePrevio = true;
+        const lineas = [];
+
+        for (const c of criterios) {
+          const miSuma = sumaHoyos(jugador, c.desde, c.hasta);
+          const suSuma = sumaHoyos(rival, c.desde, c.hasta);
+
+          if (huboEmpatePrevio) {
+            lineas.push({
+              nombre: c.nombre,
+              jugador: miSuma,
+              rival: suSuma,
+              decisivo: miSuma !== suSuma
+            });
+          }
+
+          if (miSuma !== suSuma) {
+            return {
+              rival: rival.JUGADOR,
+              lineas
+            };
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function claseScore(golpes, par) {
+      const g = n(golpes);
+      const diff = g - par;
+
+      if (diff <= -2) return "eagle";
+      if (diff === -1) return "birdie";
+      if (diff === 0) return "par";
+      if (diff === 1) return "bogey";
+      return "double-bogey";
+    }
+
+    function htmlScore(golpes, par) {
+      const valor = String(golpes || "").trim();
+      if (!valor) return "";
+      const clase = claseScore(valor, par);
+      return `<span class="score ${clase}">${valor}</span>`;
+    }
+
+    function construirMeta(j) {
+      const meta = [
+        { label: "Jugador", value: j.JUGADOR || "" },
+        { label: "Categoría", value: j.CATEGORIA || "" },
+        { label: "Modalidad", value: j.MODALIDAD || "" },
+        { label: "Fecha", value: j.FECHA || "" },
+        { label: "Index", value: j.INDEX || "" },
+        { label: "HP", value: j.HP || "" },
+        { label: "Neto", value: j.NETO || "" },
+        { label: "Total", value: j.TOTAL || "" }
+      ];
+
+      document.getElementById("metaGrid").innerHTML = meta.map(m => `
+        <div class="meta-item">
+          <div class="meta-label">${m.label}</div>
+          <div class="meta-value">${m.value}</div>
+        </div>
+      `).join("");
+    }
+
+    function construirTarjeta(j) {
+      const ida = sumaHoyos(j, 1, 9);
+      const vuelta = sumaHoyos(j, 10, 18);
+      const total = sumaHoyos(j, 1, 18);
+
+      let html = `
+        <div class="tabla-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <td class="label">Hoyo</td>
+                ${HOYOS.slice(0, 9).map(x => `<td>${x.h}</td>`).join("")}
+                <td class="resaltado">IDA</td>
+                ${HOYOS.slice(9).map(x => `<td>${x.h}</td>`).join("")}
+                <td class="resaltado">VTA</td>
+                <td class="resaltado">TOT</td>
+              </tr>
+              <tr>
+                <td class="label">Par</td>
+                ${HOYOS.slice(0, 9).map(x => `<td>${x.par}</td>`).join("")}
+                <td class="resaltado">${PAR_IDA}</td>
+                ${HOYOS.slice(9).map(x => `<td>${x.par}</td>`).join("")}
+                <td class="resaltado">${PAR_VUELTA}</td>
+                <td class="resaltado">${PAR_TOTAL}</td>
+              </tr>
+              <tr>
+                <td class="label">HCP</td>
+                ${HOYOS.slice(0, 9).map(x => `<td>${x.hp}</td>`).join("")}
+                <td class="resaltado"> </td>
+                ${HOYOS.slice(9).map(x => `<td>${x.hp}</td>`).join("")}
+                <td class="resaltado"> </td>
+                <td class="resaltado"> </td>
+              </tr>
+              <tr>
+                <td class="label">Score</td>
+                ${HOYOS.slice(0, 9).map(x => `<td>${htmlScore(j["H" + x.h], x.par)}</td>`).join("")}
+                <td class="resaltado">${ida}</td>
+                ${HOYOS.slice(9).map(x => `<td>${htmlScore(j["H" + x.h], x.par)}</td>`).join("")}
+                <td class="resaltado">${vuelta}</td>
+                <td class="resaltado">${total}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      document.getElementById("tarjetaBox").innerHTML = html;
+    }
+
+    fetch("./RESULTADOS-BETA.csv?v=" + Date.now())
+      .then(r => {
+        if (!r.ok) throw new Error("No se pudo abrir RESULTADOS-BETA.csv");
+        return r.text();
+      })
+      .then(texto => {
+        const filas = texto.replace(/\r/g, "").trim().split("\n");
+        const encabezados = filas.shift().split(";").map(x => x.trim());
+
+        const registros = filas
+          .filter(f => f.trim() !== "")
+          .map(f => {
+            const c = f.split(";");
+            const obj = {};
+            encabezados.forEach((h, i) => obj[h] = (c[i] || "").trim());
+            return obj;
+          })
+          .filter(r => String(r.TORIDD || "").trim() === idBuscado);
+
+        if (registros.length === 0) {
+          document.getElementById("titulo").textContent = "Tarjeta no encontrada";
+          document.getElementById("subtitulo").textContent = "";
+          document.getElementById("tarjetaBox").innerHTML = `<div class="empty">No hay datos para mostrar.</div>`;
+          return;
+        }
+
+        const categorias = {};
+        registros.forEach(r => {
+          const cat = r.CATEGORIA || "Sin categoría";
+          if (!categorias[cat]) categorias[cat] = [];
+          categorias[cat].push(r);
+        });
+
+        Object.keys(categorias).forEach(cat => {
+          categorias[cat].sort(compararJugadores);
+        });
+
+        let jugador = registros.find(r =>
+          normalizarTexto(r.JUGADOR) === normalizarTexto(jugadorBuscado) &&
+          normalizarTexto(r.CATEGORIA) === normalizarTexto(categoriaBuscada)
+        );
+
+        if (!jugador) {
+          jugador = registros.find(r => normalizarTexto(r.JUGADOR) === normalizarTexto(jugadorBuscado));
+        }
+
+        if (!jugador) {
+          document.getElementById("titulo").textContent = "Jugador no encontrado";
+          document.getElementById("subtitulo").textContent = "";
+          document.getElementById("tarjetaBox").innerHTML = `<div class="empty">No se encontró la tarjeta del jugador.</div>`;
+          return;
+        }
+
+        document.getElementById("titulo").textContent = jugador.JUGADOR;
+        document.getElementById("subtitulo").textContent = `${jugador.TORNEO} · ${jugador.FECHA}`;
+
+        document.getElementById("volverLink").href =
+          "./torneo-beta.html?id=" + encodeURIComponent(jugador.TORIDD || "");
+
+        construirMeta(jugador);
+        construirTarjeta(jugador);
+
+        const categoriaLista = (categorias[jugador.CATEGORIA] || []).slice();
+        const principal = valorPrincipal(jugador);
+
+        const empatados = categoriaLista.filter(r =>
+          normalizarTexto(r.JUGADOR) !== normalizarTexto(jugador.JUGADOR) &&
+          valorPrincipal(r) === principal &&
+          !esNoValido(r.TOTAL)
+        );
+
+        const detalleDesempate = obtenerDetalleDesempate(jugador, empatados);
+
+        if (detalleDesempate) {
+          document.getElementById("desempateBox").innerHTML = `
+            <div class="desempate-box">
+              <h3>Desempate automático</h3>
+              <div class="desempate-linea"><strong>Empatado con:</strong> ${detalleDesempate.rival}</div>
+              ${detalleDesempate.lineas.map(l => `
+                <div class="desempate-linea">
+                  ${l.decisivo ? "<strong>" : ""}
+                  ${l.nombre}: ${l.jugador} ${l.decisivo ? "← criterio decisivo" : ""}
+                  ${l.decisivo ? "</strong>" : ""}
+                </div>
+              `).join("")}
+            </div>
+          `;
+        }
+      })
+      .catch(err => {
+        document.getElementById("titulo").textContent = "Error";
+        document.getElementById("subtitulo").textContent = err.message;
+        document.getElementById("tarjetaBox").innerHTML = `<div class="empty">No se pudo cargar la tarjeta.</div>`;
+      });
+  </script>
+</body>
+</html>
