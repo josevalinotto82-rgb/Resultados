@@ -198,7 +198,7 @@
     .desempate-box {
       background: white;
       border-radius: 14px;
-      padding: 18px;
+      padding: 16px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       margin-bottom: 18px;
     }
@@ -206,24 +206,31 @@
     .leyenda h3,
     .desempate-box h3 {
       margin-top: 0;
-      margin-bottom: 12px;
-      font-size: 18px;
+      margin-bottom: 10px;
+      font-size: 16px;
     }
 
     .leyenda-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
     }
 
     .leyenda-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       background: #f8fafc;
-      border-radius: 12px;
-      padding: 10px;
-      font-size: 14px;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .leyenda .score {
+      min-width: 28px;
+      height: 28px;
+      font-size: 12px;
+      padding: 0 6px;
     }
 
     .desempate-linea {
@@ -288,6 +295,15 @@
         padding-top: 7px;
         padding-bottom: 7px;
       }
+
+      .leyenda h3,
+      .desempate-box h3 {
+        font-size: 17px;
+      }
+
+      .leyenda-item {
+        font-size: 13px;
+      }
     }
 
     @media (max-width: 640px) {
@@ -336,7 +352,7 @@
     <div id="tarjetaBox"></div>
 
     <div class="leyenda">
-      <h3>Referencia de score respecto al par</h3>
+      <h3>Referencia:</h3>
       <div class="leyenda-grid">
         <div class="leyenda-item"><span class="score par">4</span> <span>Par</span></div>
         <div class="leyenda-item"><span class="score birdie">3</span> <span>Birdie</span></div>
@@ -476,21 +492,18 @@
       ];
 
       for (const rival of rivalesEmpatados) {
-        let huboEmpatePrevio = true;
         const lineas = [];
 
         for (const c of criterios) {
           const miSuma = sumaHoyos(jugador, c.desde, c.hasta);
           const suSuma = sumaHoyos(rival, c.desde, c.hasta);
 
-          if (huboEmpatePrevio) {
-            lineas.push({
-              nombre: c.nombre,
-              jugador: miSuma,
-              rival: suSuma,
-              decisivo: miSuma !== suSuma
-            });
-          }
+          lineas.push({
+            nombre: c.nombre,
+            jugador: miSuma,
+            rival: suSuma,
+            decisivo: miSuma !== suSuma
+          });
 
           if (miSuma !== suSuma) {
             return {
@@ -522,10 +535,15 @@
       return `<span class="score ${clase}">${valor}</span>`;
     }
 
+    function obtenerHdp(j) {
+      return (j.HP || j.HCP || "").trim();
+    }
+
     function construirDatosLinea(j) {
       document.getElementById("datosLinea").innerHTML = `
         <div><strong>Index:</strong> ${j.INDEX || ""}</div>
-        <div><strong>Handicap de juego:</strong> ${j.HP || ""}</div>
+        <div><strong>HDP:</strong> ${obtenerHdp(j)}</div>
+        <div><strong>Neto:</strong> ${j.NETO || ""}</div>
       `;
     }
 
