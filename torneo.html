@@ -216,7 +216,6 @@
           TORNEO: j2.TORNEO || j1.TORNEO,
           MODALIDAD: j2.MODALIDAD || j1.MODALIDAD,
           CATEGORIA: j2.CATEGORIA || j1.CATEGORIA,
-          POSICION: j2.POSICION || j1.POSICION,
           JUGADOR: `${j1.JUGADOR} / ${j2.JUGADOR}`,
           INDEX: `${j1.INDEX || ""} / ${j2.INDEX || ""}`,
           NETO1: j2.NETO1 || j1.NETO1 || "",
@@ -250,15 +249,14 @@
               TORNEO: (c[2] || "").trim(),
               MODALIDAD: (c[3] || "").trim(),
               CATEGORIA: (c[4] || "").trim(),
-              POSICION: (c[5] || "").trim(),
-              JUGADOR: (c[6] || "").trim(),
-              INDEX: (c[7] || "").trim(),
-              NETO1: (c[8] || "").trim(),
-              NETO2: (c[9] || "").trim(),
-              GROSS: (c[10] || "").trim(),
-              HCP: (c[11] || "").trim(),
-              NETO: (c[12] || "").trim(),
-              TOTAL: (c[13] || "").trim()
+              JUGADOR: (c[5] || "").trim(),
+              INDEX: (c[6] || "").trim(),
+              NETO1: (c[7] || "").trim(),
+              NETO2: (c[8] || "").trim(),
+              GROSS: (c[9] || "").trim(),
+              HCP: (c[10] || "").trim(),
+              NETO: (c[11] || "").trim(),
+              TOTAL: (c[12] || "").trim()
             };
           })
           .filter(r => r.ID === idBuscado);
@@ -338,7 +336,7 @@
 
           listaFinal.forEach(j => {
             const invalido = esNoValido(j.TOTAL);
-            const posMostrar = invalido ? "" : (j.POSICION || posicion++);
+            const posMostrar = invalido ? "" : posicion++);
             const esMatch = coincideBusquedaJugador(j.JUGADOR, busquedaJugador);
 
             html += `
