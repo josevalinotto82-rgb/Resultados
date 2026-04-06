@@ -69,43 +69,27 @@
 
     .titulo {
       margin: 0 0 8px;
-      font-size: 28px;
+      font-size: 30px;
       text-transform: uppercase;
     }
 
     .subtitulo {
       color: #6b7280;
       font-size: 15px;
-      margin: 0;
+      margin: 0 0 14px;
     }
 
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 16px;
+    .datos-linea {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-size: 15px;
+      color: #374151;
+      margin-top: 8px;
     }
 
-    .meta-item {
-      background: #f8fafc;
-      border-radius: 12px;
-      padding: 12px;
-    }
-
-    .meta-label {
-      font-size: 12px;
-      color: #6b7280;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-    }
-
-    .meta-value {
-      font-size: 16px;
-      font-weight: 700;
-      color: #1f2937;
-      word-break: break-word;
+    .datos-linea strong {
+      color: #111827;
     }
 
     .tabla-wrap {
@@ -114,6 +98,7 @@
       border-radius: 14px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       margin-bottom: 18px;
+      -webkit-overflow-scrolling: touch;
     }
 
     table {
@@ -141,11 +126,35 @@
       position: sticky;
       left: 0;
       z-index: 1;
+      min-width: 72px;
+    }
+
+    tr.row-par td,
+    tr.row-hcp td {
+      background: #f3f4f6;
+      padding-top: 6px;
+      padding-bottom: 6px;
+      font-size: 13px;
+    }
+
+    tr.row-score td {
+      background: white;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    tr.row-score td.label {
+      background: white;
     }
 
     .resaltado {
       background: #ecfdf5;
       font-weight: 700;
+    }
+
+    .row-par .resaltado,
+    .row-hcp .resaltado {
+      background: #e5e7eb;
     }
 
     .score {
@@ -158,6 +167,7 @@
       font-weight: 700;
       line-height: 1;
       color: #1f2937;
+      background: white;
     }
 
     .par {
@@ -230,24 +240,9 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
 
-    @media (max-width: 980px) {
-      .meta-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .leyenda-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 640px) {
-      .meta-grid,
-      .leyenda-grid {
-        grid-template-columns: 1fr;
-      }
-
+    @media (max-width: 900px) {
       .titulo {
-        font-size: 22px;
+        font-size: 24px;
       }
 
       .club-name {
@@ -256,6 +251,65 @@
 
       .escudo {
         height: 50px;
+      }
+
+      .leyenda-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      table {
+        min-width: 920px;
+      }
+
+      th, td {
+        font-size: 12px;
+        padding: 7px 5px;
+      }
+
+      td.label {
+        min-width: 62px;
+      }
+
+      .score {
+        min-width: 28px;
+        height: 28px;
+        padding: 0 5px;
+        font-size: 12px;
+      }
+
+      tr.row-par td,
+      tr.row-hcp td {
+        padding-top: 4px;
+        padding-bottom: 4px;
+        font-size: 11px;
+      }
+
+      tr.row-score td {
+        padding-top: 7px;
+        padding-bottom: 7px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 18px 10px 28px;
+      }
+
+      .titulo {
+        font-size: 21px;
+      }
+
+      .subtitulo {
+        font-size: 14px;
+      }
+
+      .datos-linea {
+        gap: 14px;
+        font-size: 14px;
+      }
+
+      .leyenda-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -275,21 +329,20 @@
 
       <h1 id="titulo" class="titulo">Cargando tarjeta...</h1>
       <p id="subtitulo" class="subtitulo"></p>
-
-      <div id="metaGrid" class="meta-grid"></div>
+      <div id="datosLinea" class="datos-linea"></div>
     </div>
 
     <div id="desempateBox"></div>
     <div id="tarjetaBox"></div>
 
     <div class="leyenda">
-      <h3>Referencia de score</h3>
+      <h3>Referencia de score respecto al par</h3>
       <div class="leyenda-grid">
         <div class="leyenda-item"><span class="score par">4</span> <span>Par</span></div>
-        <div class="leyenda-item"><span class="score birdie">3</span> <span>1 golpe menos</span></div>
-        <div class="leyenda-item"><span class="score eagle">2</span> <span>2 o más menos</span></div>
-        <div class="leyenda-item"><span class="score bogey">5</span> <span>1 golpe más</span></div>
-        <div class="leyenda-item"><span class="score double-bogey">6</span> <span>2 o más más</span></div>
+        <div class="leyenda-item"><span class="score birdie">3</span> <span>Birdie</span></div>
+        <div class="leyenda-item"><span class="score eagle">2</span> <span>Albatros</span></div>
+        <div class="leyenda-item"><span class="score bogey">5</span> <span>Bogey</span></div>
+        <div class="leyenda-item"><span class="score double-bogey">6</span> <span>Doble Bogey o más</span></div>
       </div>
     </div>
   </div>
@@ -469,24 +522,11 @@
       return `<span class="score ${clase}">${valor}</span>`;
     }
 
-    function construirMeta(j) {
-      const meta = [
-        { label: "Jugador", value: j.JUGADOR || "" },
-        { label: "Categoría", value: j.CATEGORIA || "" },
-        { label: "Modalidad", value: j.MODALIDAD || "" },
-        { label: "Fecha", value: j.FECHA || "" },
-        { label: "Index", value: j.INDEX || "" },
-        { label: "HP", value: j.HP || "" },
-        { label: "Neto", value: j.NETO || "" },
-        { label: "Total", value: j.TOTAL || "" }
-      ];
-
-      document.getElementById("metaGrid").innerHTML = meta.map(m => `
-        <div class="meta-item">
-          <div class="meta-label">${m.label}</div>
-          <div class="meta-value">${m.value}</div>
-        </div>
-      `).join("");
+    function construirDatosLinea(j) {
+      document.getElementById("datosLinea").innerHTML = `
+        <div><strong>Index:</strong> ${j.INDEX || ""}</div>
+        <div><strong>Handicap de juego:</strong> ${j.HP || ""}</div>
+      `;
     }
 
     function construirTarjeta(j) {
@@ -494,7 +534,7 @@
       const vuelta = sumaHoyos(j, 10, 18);
       const total = sumaHoyos(j, 1, 18);
 
-      let html = `
+      const html = `
         <div class="tabla-wrap">
           <table>
             <tbody>
@@ -506,7 +546,7 @@
                 <td class="resaltado">VTA</td>
                 <td class="resaltado">TOT</td>
               </tr>
-              <tr>
+              <tr class="row-par">
                 <td class="label">Par</td>
                 ${HOYOS.slice(0, 9).map(x => `<td>${x.par}</td>`).join("")}
                 <td class="resaltado">${PAR_IDA}</td>
@@ -514,15 +554,15 @@
                 <td class="resaltado">${PAR_VUELTA}</td>
                 <td class="resaltado">${PAR_TOTAL}</td>
               </tr>
-              <tr>
+              <tr class="row-hcp">
                 <td class="label">HCP</td>
                 ${HOYOS.slice(0, 9).map(x => `<td>${x.hp}</td>`).join("")}
-                <td class="resaltado"> </td>
+                <td class="resaltado"></td>
                 ${HOYOS.slice(9).map(x => `<td>${x.hp}</td>`).join("")}
-                <td class="resaltado"> </td>
-                <td class="resaltado"> </td>
+                <td class="resaltado"></td>
+                <td class="resaltado"></td>
               </tr>
-              <tr>
+              <tr class="row-score">
                 <td class="label">Score</td>
                 ${HOYOS.slice(0, 9).map(x => `<td>${htmlScore(j["H" + x.h], x.par)}</td>`).join("")}
                 <td class="resaltado">${ida}</td>
@@ -597,7 +637,7 @@
         document.getElementById("volverLink").href =
           "./torneo-beta.html?id=" + encodeURIComponent(jugador.TORIDD || "");
 
-        construirMeta(jugador);
+        construirDatosLinea(jugador);
         construirTarjeta(jugador);
 
         const categoriaLista = (categorias[jugador.CATEGORIA] || []).slice();
@@ -619,7 +659,8 @@
               ${detalleDesempate.lineas.map(l => `
                 <div class="desempate-linea">
                   ${l.decisivo ? "<strong>" : ""}
-                  ${l.nombre}: ${l.jugador} ${l.decisivo ? "← criterio decisivo" : ""}
+                  ${l.nombre}: ${l.jugador}
+                  ${l.decisivo ? " ← criterio decisivo" : ""}
                   ${l.decisivo ? "</strong>" : ""}
                 </div>
               `).join("")}
