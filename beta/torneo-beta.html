@@ -420,24 +420,23 @@
   .mini-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 0;
     table-layout: fixed;
   }
 
   .mini-table td {
     border: 1px solid #e5e7eb;
     text-align: center;
-    padding: 6px 2px;
-    font-size: 11px;
+    padding: 4px 1px;   /* 🔥 antes 7px → ahora mucho más chico */
+    font-size: 10px;    /* 🔥 clave */
   }
 
   .mini-table .label {
-    text-align: left;
-    font-weight: 700;
-    background: #f3f4f6;
-    width: 38px;
-    min-width: 38px;
-    max-width: 38px;
-    padding-left: 6px;
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+    font-size: 10px;
+    padding-left: 4px;
   }
 
   .mini-table .par-row td,
@@ -455,26 +454,26 @@
   }
 
   .score {
-    min-width: 22px;
-    height: 22px;
-    font-size: 11px;
-    padding: 0 2px;
+    min-width: 20px;
+    height: 20px;
+    font-size: 10px;
+    padding: 0;
   }
 
   .birdie {
-    border-width: 2px;
+    border-width: 1.5px;
   }
 
   .eagle {
-    border-width: 4px;
+    border-width: 3px;
   }
 
   .bogey {
-    border-width: 2px;
+    border-width: 1.5px;
   }
 
   .double-bogey {
-    border-width: 4px;
+    border-width: 3px;
   }
 }
   </style>
