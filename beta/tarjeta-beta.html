@@ -96,6 +96,16 @@
       margin-top: 12px;
     }
 
+    .puesto-badge {
+      display: inline-block;
+      background: #166534; /* verde golf 😏 */
+      color: #f5e7b3;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
     .datos-linea strong {
       color: #111827;
     }
@@ -570,7 +580,7 @@
 
     function construirDatosLinea(j, posicion) {
       document.getElementById("datosLinea").innerHTML = `
-        <div><strong>Posición:</strong> ${posicion || ""}</div>
+        <div class="puesto-badge">Puesto ${posicion || ""}</div>
         <div><strong>Index:</strong> ${j.INDEX || ""}</div>
         <div><strong>HDP:</strong> ${obtenerHdp(j)}</div>
         <div><strong>Neto:</strong> ${j.NETO || ""}</div>
