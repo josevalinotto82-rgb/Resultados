@@ -835,22 +835,18 @@
     function toggleDetalle(idx) {
       const allDetails = document.querySelectorAll(".detail-row");
       const allRows = document.querySelectorAll(".player-row");
-      const allBtns = document.querySelectorAll(".btn-toggle");
 
       const detail = document.getElementById("detail-" + idx);
       const row = document.getElementById("player-" + idx);
-      const btn = document.getElementById("btn-" + idx);
 
       const abrir = !detail.classList.contains("show");
 
       allDetails.forEach(d => d.classList.remove("show"));
       allRows.forEach(r => r.classList.remove("open"));
-      allBtns.forEach(b => b.innerHTML = "Tarjeta");
 
       if (abrir) {
         detail.classList.add("show");
         row.classList.add("open");
-        btn.innerHTML = "Ocultar";
       }
     }
 
@@ -908,10 +904,8 @@
                       <th>Jugador</th>
                       <th>Index</th>
                       <th>HP</th>
-                      <th>Gross</th>
                       <th>Neto</th>
                       <th>Total</th>
-                      <th>Acción</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -936,20 +930,18 @@
             const highlight = coincideBusquedaJugador(j.JUGADOR, busquedaJugador) ? ' style="outline: 2px solid #86efac;"' : "";
 
             html += `
-              <tr id="player-${idx}" class="player-row ${rowColor}"${highlight}>
+              <tr id="player-${idx}" class="player-row ${rowColor}"${highlight} onclick="toggleDetalle(${idx})">
                 <td>${posMostrar}</td>
-                <td class="nombre" onclick="toggleDetalle(${idx})">${j.JUGADOR}</td>
+                <td class="nombre">${j.JUGADOR}</td>
                 <td>${j.INDEX || ""}</td>
                 <td>${obtenerHdp(j)}</td>
-                <td>${j.GROSS || ""}</td>
                 <td>${j.NETO || ""}</td>
                 <td>${j.TOTAL || ""}</td>
                 <td>
-                  <button id="btn-${idx}" class="btn-toggle" onclick="toggleDetalle(${idx})">Tarjeta</button>
                 </td>
               </tr>
               <tr id="detail-${idx}" class="detail-row">
-                <td colspan="8" class="detail-cell">
+                <td colspan="6" class="detail-cell">
                   ${detalleJugadorHtml(j, posMostrar, empatados)}
                 </td>
               </tr>
