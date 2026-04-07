@@ -80,19 +80,20 @@
       font-weight: 700;
     }
 
-    .categoria {
+    .meta-top {
+      margin-top: 6px;
       color: #6b7280;
       font-size: 14px;
-      margin-top: 4px;
+      line-height: 1.5;
     }
-    
+
     .datos-linea {
       display: flex;
       gap: 24px;
       flex-wrap: wrap;
       font-size: 15px;
       color: #374151;
-      margin-top: 8px;
+      margin-top: 12px;
     }
 
     .datos-linea strong {
@@ -326,6 +327,10 @@
         font-size: 14px;
       }
 
+      .meta-top {
+        font-size: 13px;
+      }
+
       .datos-linea {
         gap: 14px;
         font-size: 14px;
@@ -352,7 +357,7 @@
 
       <h1 id="titulo" class="titulo">Cargando tarjeta...</h1>
       <p id="subtitulo" class="subtitulo"></p>
-      <p id="categoria" class="categoria"></p>
+      <div id="metaTop" class="meta-top"></div>
       <div id="datosLinea" class="datos-linea"></div>
     </div>
 
@@ -470,11 +475,11 @@
 
       if (aSinParciales && bSinParciales) {
         const criterios = [
-          [10, 18, "segunda vuelta"],
-          [13, 18, "últimos 6 hoyos"],
-          [16, 18, "últimos 3 hoyos"],
-          [17, 18, "últimos 2 hoyos"],
-          [18, 18, "último hoyo"]
+          [10, 18],
+          [13, 18],
+          [16, 18],
+          [17, 18],
+          [18, 18]
         ];
 
         for (const [desde, hasta] of criterios) {
@@ -544,11 +549,28 @@
     }
 
     function obtenerHdp(j) {
-      return (j.HP || j.HCP || "").trim();
+      return String(j.HP || j.HCP || "").trim();
     }
 
-    function construirDatosLinea(j) {
+    function calcularPosicion(jugador, listaCategoriaOrdenada) {
+      let posicion = 0;
+      for (const item of listaCategoriaOrdenada) {
+        if (esNoValido(item.TOTAL)) continue;
+        posicion++;
+
+        if (
+          normalizarTexto(item.JUGADOR) === normalizarTexto(jugador.JUGADOR) &&
+          normalizarTexto(item.CATEGORIA) === normalizarTexto(jugador.CATEGORIA)
+        ) {
+          return posicion;
+        }
+      }
+      return "";
+    }
+
+    function construirDatosLinea(j, posicion) {
       document.getElementById("datosLinea").innerHTML = `
+        <div><strong>Posición:</strong> ${posicion || ""}</div>
         <div><strong>Index:</strong> ${j.INDEX || ""}</div>
         <div><strong>HDP:</strong> ${obtenerHdp(j)}</div>
         <div><strong>Neto:</strong> ${j.NETO || ""}</div>
@@ -625,8 +647,8 @@
 
         if (registros.length === 0) {
           document.getElementById("titulo").textContent = "Tarjeta no encontrada";
-          document.getElementById("subtitulo").textContent = jugador.TORNEO;
-          document.getElementById("categoria").textContent = `${jugador.CATEGORIA} · ${jugador.FECHA}`;
+          document.getElementById("subtitulo").textContent = "";
+          document.getElementById("metaTop").textContent = "";
           document.getElementById("tarjetaBox").innerHTML = `<div class="empty">No hay datos para mostrar.</div>`;
           return;
         }
@@ -654,20 +676,27 @@
         if (!jugador) {
           document.getElementById("titulo").textContent = "Jugador no encontrado";
           document.getElementById("subtitulo").textContent = "";
+          document.getElementById("metaTop").textContent = "";
           document.getElementById("tarjetaBox").innerHTML = `<div class="empty">No se encontró la tarjeta del jugador.</div>`;
           return;
         }
 
+        const categoriaLista = (categorias[jugador.CATEGORIA] || []).slice();
+        const posicion = calcularPosicion(jugador, categoriaLista);
+
         document.getElementById("titulo").textContent = jugador.JUGADOR;
-        document.getElementById("subtitulo").textContent = `${jugador.TORNEO} · ${jugador.FECHA}`;
+        document.getElementById("subtitulo").textContent = jugador.TORNEO;
+        document.getElementById("metaTop").innerHTML = `
+          <div><strong>Categoría:</strong> ${jugador.CATEGORIA || ""}</div>
+          <div><strong>Fecha:</strong> ${jugador.FECHA || ""}</div>
+        `;
 
         document.getElementById("volverLink").href =
           "./torneo-beta.html?id=" + encodeURIComponent(jugador.TORIDD || "");
 
-        construirDatosLinea(jugador);
+        construirDatosLinea(jugador, posicion);
         construirTarjeta(jugador);
 
-        const categoriaLista = (categorias[jugador.CATEGORIA] || []).slice();
         const principal = valorPrincipal(jugador);
 
         const empatados = categoriaLista.filter(r =>
@@ -698,6 +727,7 @@
       .catch(err => {
         document.getElementById("titulo").textContent = "Error";
         document.getElementById("subtitulo").textContent = err.message;
+        document.getElementById("metaTop").textContent = "";
         document.getElementById("tarjetaBox").innerHTML = `<div class="empty">No se pudo cargar la tarjeta.</div>`;
       });
   </script>
