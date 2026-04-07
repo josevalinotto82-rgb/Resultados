@@ -350,97 +350,133 @@
     }
 
     @media (max-width: 860px) {
-      .container {
-        padding: 18px 10px 28px;
-      }
+  .container {
+    padding: 14px 8px 24px;
+  }
 
-      .titulo {
-        font-size: 22px;
-      }
+  th:nth-child(3),
+  th:nth-child(4),
+  th:nth-child(5),
+  th:nth-child(6),
+  td:nth-child(3),
+  td:nth-child(4),
+  td:nth-child(5),
+  td:nth-child(6) {
+    display: none;
+  }
 
-      .club-name {
-        font-size: 20px;
-      }
+}
 
-      .escudo {
-        height: 50px;
-      }
+  .card,
+  .categoria-card {
+    border-radius: 12px;
+  }
 
-      table {
-        min-width: 760px;
-      }
+  .categoria-header {
+    padding: 14px 14px;
+    font-size: 18px;
+  }
 
-      th, td {
-        font-size: 13px;
-        padding: 10px 8px;
-      }
+  table {
+    min-width: 0;
+  }
 
-      .btn-toggle {
-        padding: 7px 10px;
-        font-size: 11px;
-      }
+  th, td {
+    font-size: 12px;
+    padding: 8px 6px;
+  }
 
-      .scorecard-desktop {
-        display: none;
-      }
+  .btn-toggle {
+    padding: 6px 9px;
+    font-size: 11px;
+  }
 
-      .scorecard-mobile {
-        display: block;
-      }
+  .scorecard-desktop {
+    display: none;
+  }
 
-      .mini-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 12px;
-      }
+  .scorecard-mobile {
+    display: block;
+  }
 
-      .mini-head {
-        background: #166534;
-        color: white;
-        font-weight: 700;
-      }
+  .detail-box {
+    padding: 12px;
+  }
 
-      .mini-table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 0;
-      }
+  .detail-top {
+    gap: 8px 14px;
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
 
-      .mini-table td {
-        border: 1px solid #e5e7eb;
-        text-align: center;
-        padding: 7px 4px;
-        font-size: 12px;
-      }
+  .mini-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
 
-      .mini-table .label {
-        text-align: left;
-        font-weight: 700;
-        background: #f3f4f6;
-        width: 56px;
-      }
+  .mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
 
-      .mini-table .par-row td,
-      .mini-table .hcp-row td {
-        background: #f3f4f6;
-        font-size: 11px;
-        padding-top: 5px;
-        padding-bottom: 5px;
-      }
+  .mini-table td {
+    border: 1px solid #e5e7eb;
+    text-align: center;
+    padding: 6px 2px;
+    font-size: 11px;
+  }
 
-      .mini-table .sum {
-        background: #eef6ef;
-        font-weight: 700;
-      }
+  .mini-table .label {
+    text-align: left;
+    font-weight: 700;
+    background: #f3f4f6;
+    width: 38px;
+    min-width: 38px;
+    max-width: 38px;
+    padding-left: 6px;
+  }
 
-      .score {
-        min-width: 26px;
-        height: 26px;
-        font-size: 12px;
-      }
-    }
+  .mini-table .par-row td,
+  .mini-table .hcp-row td {
+    background: #f3f4f6;
+    font-size: 10px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .mini-table .sum {
+    background: #eef6ef;
+    font-weight: 700;
+    width: 42px;
+  }
+
+  .score {
+    min-width: 22px;
+    height: 22px;
+    font-size: 11px;
+    padding: 0 2px;
+  }
+
+  .birdie {
+    border-width: 2px;
+  }
+
+  .eagle {
+    border-width: 4px;
+  }
+
+  .bogey {
+    border-width: 2px;
+  }
+
+  .double-bogey {
+    border-width: 4px;
+  }
+}
   </style>
 </head>
 <body>
