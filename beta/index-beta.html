@@ -279,27 +279,63 @@
         .filter(Boolean);
     }
 
-    function extraerAnio(fecha) {
-      if (!fecha) return "";
-      const partes = fecha.split("/");
-      return partes.length === 3 ? partes[2] : "";
+    function fechaAObjeto(fecha) {
+      const texto = String(fecha || "").trim();
+      if (!texto) return null;
+
+      let dia, mes, anio;
+      let m;
+
+      // Formato: dd/mm/yyyy o d/m/yyyy
+      m = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (m) {
+        dia = Number(m[1]);
+        mes = Number(m[2]) - 1;
+        anio = Number(m[3]);
+        if (anio < 100) anio += 2000;
+      } else {
+        // Formato: yyyy-mm-dd
+        m = texto.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (!m) return null;
+
+        anio = Number(m[1]);
+        mes = Number(m[2]) - 1;
+        dia = Number(m[3]);
+      }
+
+      const f = new Date(anio, mes, dia);
+
+      if (
+        Number.isNaN(f.getTime()) ||
+        f.getFullYear() !== anio ||
+        f.getMonth() !== mes ||
+        f.getDate() !== dia
+      ) {
+        return null;
+      }
+
+      return f;
     }
 
-    function fechaAObjeto(fecha) {
-      if (!fecha) return null;
-      const partes = fecha.split("/");
-      if (partes.length !== 3) return null;
+    function formatearFecha(fecha) {
+      const f = fechaAObjeto(fecha);
+      if (!f) return String(fecha || "");
 
-      const dia = Number(partes[0]);
-      const mes = Number(partes[1]) - 1;
-      const anio = Number(partes[2]);
+      const dd = String(f.getDate()).padStart(2, "0");
+      const mm = String(f.getMonth() + 1).padStart(2, "0");
+      const yyyy = String(f.getFullYear());
 
-      return new Date(anio, mes, dia);
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    function extraerAnio(fecha) {
+      const f = fechaAObjeto(fecha);
+      return f ? String(f.getFullYear()) : "";
     }
 
     function obtenerDiaSemana(fecha) {
       const f = fechaAObjeto(fecha);
-      if (!f || Number.isNaN(f.getTime())) return "";
+      if (!f) return "";
       return String(f.getDay());
     }
 
@@ -396,7 +432,7 @@
       lista.innerHTML = filtrados.map(t => `
         <div class="torneo">
           <div class="torneo-info">
-            <div class="fecha">${t.FECHA}</div>
+            <div class="fecha">${formatearFecha(t.FECHA)}</div>
             <div class="nombre">${t.TORNEO}</div>
             <div class="modalidad">${t.MODALIDAD}</div>
           </div>
@@ -434,6 +470,11 @@
       torneos.sort((a, b) => {
         const da = fechaAObjeto(a.FECHA);
         const db = fechaAObjeto(b.FECHA);
+
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+
         return db - da;
       });
 
