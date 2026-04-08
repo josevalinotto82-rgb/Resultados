@@ -517,6 +517,47 @@
     const PAR_VUELTA = 36;
     const PAR_TOTAL = 71;
 
+    function fechaAObjeto(fecha) {
+      const texto = String(fecha || "").trim();
+      if (!texto) return null;
+
+      let dia, mes, anio;
+      let m;
+
+      // dd/mm/yyyy
+      m = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (m) {
+        dia = Number(m[1]);
+        mes = Number(m[2]) - 1;
+        anio = Number(m[3]);
+        if (anio < 100) anio += 2000;
+      } else {
+        // yyyy-mm-dd
+        m = texto.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (!m) return null;
+
+        anio = Number(m[1]);
+        mes = Number(m[2]) - 1;
+        dia = Number(m[3]);
+      }
+
+      const f = new Date(anio, mes, dia);
+      if (Number.isNaN(f.getTime())) return null;
+
+      return f;
+    }
+
+    function formatearFecha(fecha) {
+      const f = fechaAObjeto(fecha);
+      if (!f) return String(fecha || "");
+
+      const dd = String(f.getDate()).padStart(2, "0");
+      const mm = String(f.getMonth() + 1).padStart(2, "0");
+      const yyyy = f.getFullYear();
+
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    
     function normalizarTexto(texto) {
       return String(texto || "")
         .toLowerCase()
@@ -857,7 +898,7 @@
 
         if (registros.length === 0) {
           document.getElementById("titulo").textContent = "Torneo no encontrado";
-          document.getElementById("subtitulo").textContent = "";
+          document.getElementById("subtitulo").textContent = `${formatearFecha(primero.FECHA)} · ${primero.MODALIDAD}`;
           document.getElementById("contenido").innerHTML = `<div class="empty">No hay datos para mostrar.</div>`;
           return;
         }
