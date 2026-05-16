@@ -1,4 +1,3 @@
-<!-- version sin casita 2026-05-15 -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -486,7 +485,12 @@
                 btn.addEventListener("click", () => {
                     const id = btn.dataset.id;
                     const q = document.getElementById("buscador").value || "";
-                    window.location.href = `torneos.html?id=${encodeURIComponent(id)}&q=${encodeURIComponent(q)}`;
+                    window.location.href =
+                        "./torneos.html?id=" +
+                        encodeURIComponent(id) +
+                        "&q=" +
+                        encodeURIComponent(q) +
+                        "&v=2";
                 });
             });
         }
