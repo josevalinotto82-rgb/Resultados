@@ -470,29 +470,31 @@
                 return;
             }
 
-            lista.innerHTML = filtrados.map(t => `
-      <div class="torneo">
-        <div class="torneo-info">
-          <div class="fecha">${formatearFecha(t.tournament_date)}</div>
-          <div class="nombre">${t.name}</div>
-          <div class="modalidad">${t.game_modes?.name || ""}</div>
-        </div>
-        <button class="ver-btn" data-id="${t.id}">Ver resultados</button>
-      </div>
-    `).join("");
+            lista.innerHTML = filtrados.map(t => {
+                const q = document.getElementById("buscador").value || "";
 
-            document.querySelectorAll(".ver-btn").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    const id = btn.dataset.id;
-                    const q = document.getElementById("buscador").value || "";
-                    window.location.href =
-                        "./torneos.html?id=" +
-                        encodeURIComponent(id) +
-                        "&q=" +
-                        encodeURIComponent(q) +
-                        "&v=2";
-                });
-            });
+                const url =
+                    "./torneos.html?id=" +
+                    encodeURIComponent(t.id) +
+                    "&q=" +
+                    encodeURIComponent(q) +
+                    "&v=" +
+                    Date.now();
+
+                return `
+                <div class="torneo">
+                    <div class="torneo-info">
+                        <div class="fecha">${formatearFecha(t.tournament_date)}</div>
+                        <div class="nombre">${t.name}</div>
+                        <div class="modalidad">${t.game_modes?.name || ""}</div>
+                    </div>
+
+                    <a class="ver-btn" href="${url}">
+                        Ver resultados
+                    </a>
+                </div>
+            `;
+            }).join("");
         }
 
         async function cargar() {
@@ -508,16 +510,16 @@
                 const { data: torneosData, error: errorTorneos } = await supabase
                     .from("tournaments")
                     .select(`
-        id,
-        name,
-        tournament_date,
-        game_mode_id,
-        status,
-        game_modes (
-          id,
-          name
-        )
-      `)
+                    id,
+                    name,
+                    tournament_date,
+                    game_mode_id,
+                    status,
+                    game_modes (
+                    id,
+                    name
+                    )
+                `)
                     .neq("status", "closed")
                     .order("tournament_date", { ascending: false });
 
