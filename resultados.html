@@ -503,17 +503,18 @@
                 const { data: torneosData, error: errorTorneos } = await supabase
                     .from("tournaments")
                     .select(`
-                    id,
-                    name,
-                    tournament_date,
-                    game_mode_id,
-                    status,
-                    game_modes (
-                        id,
-                        name
-                    )
-                `)
+              id,
+              name,
+              tournament_date,
+              game_mode_id,
+              status,
+              game_modes (
+                  id,
+                  name
+              )
+          `)
                     .in("status", ["officialized", "archived"])
+                    .eq("published", true)
                     .order("tournament_date", { ascending: false });
 
                 if (errorTorneos) throw errorTorneos;
@@ -639,6 +640,9 @@
 
         cargar();
 
+        document.getElementById("btnHome").addEventListener("click", () => {
+            window.location.href = "panel.html";
+        });
     </script>
 </body>
 
