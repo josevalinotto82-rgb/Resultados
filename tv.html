@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard TV - Villa María Golf</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #07130d;
+      --panel: rgba(255, 255, 255, 0.095);
+      --panel-strong: rgba(255, 255, 255, 0.14);
+      --line: rgba(255, 255, 255, 0.16);
+      --text: #f8fafc;
+      --muted: rgba(248, 250, 252, 0.72);
+      --green: #22c55e;
+      --gold: #facc15;
+      --danger: #f87171;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top left, #1c3b28 0, #07130d 42%, #020806 100%);
+      color: var(--text);
+    }
+
+    body.tv-mode { cursor: none; }
+
+    .screen {
+      width: 100vw;
+      height: 100vh;
+      padding: 18px 22px 16px;
+      display: grid;
+      grid-template-rows: 88px 1fr 78px;
+      gap: 18px;
+      position: relative;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      padding: 14px 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 15px rgba(0,0,0,0.28));
+    }
+
+    .title-wrap { min-width: 0; }
+
+    .club {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #eaffef;
+      line-height: 1.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tournament {
+      margin-top: 5px;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .statusbox {
+      text-align: right;
+      min-width: 250px;
+    }
+
+    .status-line {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.35);
+      color: #bbf7d0;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(34,197,94,.9);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(34,197,94,.8); }
+      70% { box-shadow: 0 0 0 9px rgba(34,197,94,0); }
+      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    }
+
+    .music-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(250,204,21,0.13);
+      border: 1px solid rgba(250,204,21,0.28);
+      color: #fde68a;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .music-pill.off {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.55);
+    }
+
+    .meta {
+      margin-top: 8px;
+      font-size: 17px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      min-height: 0;
+      position: relative;
+    }
+
+    .leader-grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .category {
+      min-width: 0;
+      min-height: 0;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.085);
+      overflow: hidden;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.24);
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .category-rojas {
+      grid-template-rows: auto minmax(0, 0.58fr) minmax(220px, 0.42fr);
+    }
+
+    .cat-head {
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(34,197,94,.42), rgba(15,118,110,.18));
+      border-bottom: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .cat-name {
+      font-size: 20px;
+      font-weight: 950;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cat-page {
+      margin-top: 3px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.72);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .players {
+      padding: 8px;
+      display: grid;
+      grid-template-rows: repeat(10, minmax(0, 1fr));
+      gap: 6px;
+      min-height: 0;
+    }
+
+    .players-rojas {
+      grid-template-rows: repeat(5, minmax(0, 1fr));
+    }
+
+    .player-card {
+      min-height: 0;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.105);
+      border: 1px solid rgba(255,255,255,0.13);
+      padding: 7px 8px;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) 50px;
+      gap: 5px;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .player-card.top1 {
+      background: linear-gradient(135deg, rgba(250,204,21,.23), rgba(255,255,255,.11));
+      border-color: rgba(250,204,21,.42);
+    }
+
+    .pos {
+      font-size: 19px;
+      font-weight: 950;
+      color: var(--gold);
+      text-align: center;
+    }
+
+    .p-main {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .p-name {
+      min-width: 0;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .p-sub {
+      margin-top: 3px;
+      display: flex;
+      gap: 5px;
+      color: rgba(255,255,255,0.74);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scorebox {
+      width: 50px;
+      min-width: 50px;
+      max-width: 50px;
+      text-align: right;
+      overflow: hidden;
+      padding-right: 2px;
+    }
+
+    .net {
+      font-size: 22px;
+      font-weight: 950;
+      color: #dcfce7;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .label-net {
+      margin-top: 2px;
+      font-size: 9px;
+      color: rgba(255,255,255,0.62);
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .series-line {
+      margin-top: 3px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .empty-cat {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.55);
+      font-size: 19px;
+      font-weight: 800;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .media-panel {
+      width: 300px;
+      height: 200px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 5;
+      min-height: 0;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+    }
+
+    .media-panel.hidden { display: none; }
+
+    .media-inline {
+      margin: 0 8px 8px;
+      min-height: 0;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: radial-gradient(circle at center, rgba(22, 101, 52, 0.18), rgba(0,0,0,0.34));
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .media-inline .media-title {
+      left: 10px;
+      top: 10px;
+      font-size: 10px;
+      padding: 6px 8px;
+    }
+
+    .media-inline .media-empty .big {
+      font-size: 34px;
+    }
+
+    .media-inline .media-empty .small {
+      font-size: 12px;
+    }
+
+    .media-title {
+      position: absolute;
+      z-index: 2;
+      left: 14px;
+      top: 14px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.45);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .media-img {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      opacity: 0.92;
+      border-radius: 12px;
+    }
+
+    .media-img.media-foto {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .media-img.media-logo,
+    .media-img.media-qr,
+    .media-img.media-sponsor {
+      object-fit: contain;
+    }
+
+    .media-empty {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px;
+      text-align: center;
+      color: rgba(255,255,255,0.68);
+      font-weight: 800;
+    }
+
+    .media-empty .big { font-size: 46px; }
+    .media-empty .small { font-size: 15px; line-height: 1.3; }
+
+    .bottom {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,0.085);
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 12px 18px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.22);
+    }
+
+    .scratch-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .trophy {
+      font-size: 34px;
+    }
+
+    .scratch-title {
+      font-size: 13px;
+      color: rgba(255,255,255,0.64);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .scratch-name {
+      margin-top: 2px;
+      font-size: 20px;
+      font-weight: 950;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scratch-score {
+      font-size: 36px;
+      font-weight: 950;
+      color: var(--gold);
+      min-width: 56px;
+      text-align: right;
+    }
+
+    .clock {
+      text-align: right;
+      min-width: 190px;
+      color: rgba(255,255,255,0.74);
+      font-weight: 900;
+    }
+
+    .clock .time { font-size: 30px; color: #fff; }
+    .clock .refresh { margin-top: 2px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+
+    .setup {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #07130d;
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .setup-card {
+      width: min(560px, 100%);
+      background: white;
+      color: #111827;
+      border-radius: 22px;
+      padding: 26px;
+      box-shadow: 0 20px 80px rgba(0,0,0,.35);
+    }
+
+    .setup-card h1 { margin: 0 0 8px; color: #166534; }
+    .setup-card p { color: #4b5563; line-height: 1.35; }
+    .setup-card input, .setup-card select {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 16px;
+      margin: 8px 0 12px;
+    }
+    .setup-card button {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: #166534;
+      color: white;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #07130d;
+      color: white;
+      font-size: 28px;
+      font-weight: 900;
+      z-index: 40;
+    }
+
+    .loading.hidden { display: none; }
+
+    @media (max-width: 1200px) {
+      .main { grid-template-columns: 1fr; }
+      .media-panel { width: 250px; height: 165px; }
+      .leader-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+
+<body class="tv-mode">
+  <div id="loading" class="loading">Cargando leaderboard...</div>
+
+  <div id="setup" class="setup" style="display:none;">
+    <div class="setup-card">
+      <h1>Leaderboard TV</h1>
+      <p>Elegí un torneo para proyectar o abrí esta página con <strong>?id=ID_DEL_TORNEO</strong>.</p>
+      <select id="torneoSelect">
+        <option value="">Cargando torneos...</option>
+      </select>
+      <button id="btnAbrir">Abrir en modo TV</button>
+    </div>
+  </div>
+
+  <div class="screen">
+    <header class="topbar">
+      <div class="brand">
+        <img src="escudo.png" alt="Villa María Golf" class="logo" />
+        <div class="title-wrap">
+          <div class="club">Villa María Golf Club</div>
+          <div id="titulo" class="tournament">Leaderboard</div>
+        </div>
+      </div>
+      <div class="statusbox">
+        <div class="status-line">
+          <div class="live"><span class="dot"></span> Actualización en vivo</div>
+          <div id="musicStatus" class="music-pill off">🎵 Música</div>
+        </div>
+        <div id="subtitulo" class="meta"></div>
+      </div>
+    </header>
+
+    <main class="main" id="mainArea">
+      <section id="leaderGrid" class="leader-grid"></section>
+
+      <aside id="mediaPanel" class="media-panel hidden">
+        <div class="media-title">Fotos del torneo</div>
+        <div id="mediaContent" class="media-empty">
+          <div class="big">⛳</div>
+          <div class="small">Sin fotos cargadas para este torneo</div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="bottom">
+      <div class="scratch-card">
+        <div class="trophy">🏆</div>
+        <div class="scratch-info">
+          <div class="scratch-title">Scratch Caballeros</div>
+          <div id="scratchCabName" class="scratch-name">-</div>
+        </div>
+        <div id="scratchCabScore" class="scratch-score">-</div>
+      </div>
+
+      <div class="scratch-card">
+        <div class="trophy">🏆</div>
+        <div class="scratch-info">
+          <div class="scratch-title">Scratch Damas</div>
+          <div id="scratchDamName" class="scratch-name">-</div>
+        </div>
+        <div id="scratchDamScore" class="scratch-score">-</div>
+      </div>
+
+      <div class="clock">
+        <div id="hora" class="time">--:--</div>
+        <div id="refreshInfo" class="refresh">Última act.: --:--</div>
+      </div>
+    </footer>
+  </div>
+
+  <audio id="bgMusic" preload="auto" loop playsinline></audio>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const supabase = createClient(
+      "https://bnnfolhrqxgxjmobclrm.supabase.co",
+      "sb_publishable_pNxU4AFpAZPpeJ0wICLvIw_6nW90njQ"
+    );
+
+    const params = new URLSearchParams(window.location.search);
+    let torneoId = (params.get("id") || "").trim();
+    const MOSTRAR_MEDIA = true;
+    const MUSICA_ACTIVA = !["0", "false", "no"].includes(String(params.get("music") || "1").toLowerCase());
+    const AUDIO_PATH = "audio/musica.mp3";
+
+    const PAGE_SIZE = 10;
+    const ROJAS_PAGE_SIZE = 5;
+    const CATEGORY_COLUMNS = 5;
+    const ROTATE_MS = 14000;
+    const FALLBACK_REFRESH_MS = 15000;
+    const MEDIA_ROTATE_MS = 9000;
+
+    let torneoActual = null;
+    let categorias = [];
+    let jugadores = [];
+    let hoyosPorScorecard = {};
+    let pageIndex = 0;
+    let maxPages = 1;
+    let rotationTimer = null;
+    let refreshTimer = null;
+    let realtimeChannel = null;
+    let mediaUrls = [];
+    let mediaItems = [];
+    let mediaIndex = 0;
+    let mediaTimer = null;
+    let cargando = false;
+
+    function fechaAObjeto(fecha) {
+      const texto = String(fecha || "").trim();
+      if (!texto) return null;
+      const partes = texto.split("-");
+      if (partes.length === 3) {
+        const [yyyy, mm, dd] = partes;
+        return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+      }
+      const f = new Date(texto);
+      return Number.isNaN(f.getTime()) ? null : f;
+    }
+
+    function formatearFecha(fecha) {
+      const f = fechaAObjeto(fecha);
+      if (!f) return String(fecha || "");
+      const dd = String(f.getDate()).padStart(2, "0");
+      const mm = String(f.getMonth() + 1).padStart(2, "0");
+      const yyyy = String(f.getFullYear());
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    function parseNumero(valor) {
+      if (valor === undefined || valor === null || valor === "") return null;
+      const limpio = String(valor).trim().replace(",", ".");
+      const x = Number(limpio);
+      return Number.isNaN(x) ? null : x;
+    }
+
+    function n(valor) {
+      const x = Number(String(valor ?? "").trim().replace(",", "."));
+      return Number.isNaN(x) ? 0 : x;
+    }
+
+    function normalizarTexto(texto) {
+      return String(texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[,.;:()]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function nombreModalidad() {
+      return normalizarTexto(torneoActual?.game_modes?.name || "");
+    }
+
+    function esMedal() {
+      return nombreModalidad().includes("medal");
+    }
+
+    function esAmericana() {
+      const nombre = nombreModalidad();
+      return nombre.includes("americana") || nombre.includes("american");
+    }
+
+    function normalizarGenero(valor) {
+      const g = normalizarTexto(valor);
+      if (["male", "m", "masculino", "hombre", "caballero", "caballeros"].includes(g)) return "male";
+      if (["female", "f", "femenino", "mujer", "dama", "damas"].includes(g)) return "female";
+      return "";
+    }
+
+    function generoCategoria(cat) {
+      const directo = normalizarGenero(cat?.gender);
+      if (directo) return directo;
+      const nombre = normalizarTexto(cat?.name || "");
+      if (nombre.includes("dama") || nombre.includes("damas")) return "female";
+      if (nombre.includes("caballero") || nombre.includes("caballeros")) return "male";
+      return "";
+    }
+
+    function generoJugador(j) {
+      return normalizarGenero(j?.player_gender || j?.gender || "");
+    }
+
+    function esNoValido(j) {
+      const estado = String(j.card_status || "").toLowerCase();
+      return estado === "desc" || estado === "dsc" || estado === "npt" || estado === "incomplete";
+    }
+
+    function textoEstadoVisible(j) {
+      const estado = String(j.card_status || "").toLowerCase();
+      if (estado === "desc" || estado === "dsc") return "DSC";
+      if (estado === "npt" || estado === "incomplete") return "-";
+      return "";
+    }
+
+    function valorGross(j) {
+      if (esNoValido(j)) return 999999;
+      const gross = parseNumero(j.gross);
+      if (gross === null || gross <= 0) return 999999;
+      return gross;
+    }
+
+    function valorPrincipal(j) {
+      if (esNoValido(j)) return 999999;
+      if (esAmericana()) return valorGross(j);
+      const total = parseNumero(j.total);
+      const net = parseNumero(j.net);
+      const gross = parseNumero(j.gross);
+      if (total !== null && total > 0) return total;
+      if (net !== null && net > 0) return net;
+      if (gross !== null && gross > 0) return gross;
+      return 999999;
+    }
+
+    function sumaHoyosArray(hoyos, desde, hasta) {
+      let total = 0;
+      for (let i = desde; i <= hasta; i++) total += n(hoyos[i]);
+      return total;
+    }
+
+    function hcpJuego(j) {
+      const hcp = parseNumero(j.playing_handicap);
+      return hcp === null ? 0 : hcp;
+    }
+
+    function valorDesempateNeto(j, desde, hasta, divisorHcp) {
+      const hoyos = hoyosPorScorecard[j.id] || {};
+      const suma = sumaHoyosArray(hoyos, desde, hasta);
+      return suma - (hcpJuego(j) / divisorHcp);
+    }
+
+    function compararJugadores(a, b) {
+      const ordenEstado = { valid: 0, desc: 1, npt: 2, incomplete: 3 };
+      const ea = ordenEstado[String(a.card_status || "").toLowerCase()] ?? 9;
+      const eb = ordenEstado[String(b.card_status || "").toLowerCase()] ?? 9;
+      if (ea !== eb) return ea - eb;
+      if (ea !== 0) return String(a.display_name || "").localeCompare(String(b.display_name || ""), "es");
+
+      const aPrincipal = valorPrincipal(a);
+      const bPrincipal = valorPrincipal(b);
+      if (aPrincipal !== bPrincipal) return aPrincipal - bPrincipal;
+
+      const criterios = [
+        { desde: 10, hasta: 18, divisor: 2 },
+        { desde: 13, hasta: 18, divisor: 3 },
+        { desde: 16, hasta: 18, divisor: 6 },
+        { desde: 18, hasta: 18, divisor: 9 }
+      ];
+
+      for (const c of criterios) {
+        const va = valorDesempateNeto(a, c.desde, c.hasta, c.divisor);
+        const vb = valorDesempateNeto(b, c.desde, c.hasta, c.divisor);
+        if (Math.abs(va - vb) > 0.00001) return va - vb;
+      }
+
+      return String(a.display_name || "").localeCompare(String(b.display_name || ""), "es");
+    }
+
+    function compararScratch(a, b) {
+      const ea = String(a.card_status || "").toLowerCase();
+      const eb = String(b.card_status || "").toLowerCase();
+      if (ea !== "valid" || eb !== "valid") return compararJugadores(a, b);
+
+      const ag = valorGross(a);
+      const bg = valorGross(b);
+      if (ag !== bg) return ag - bg;
+
+      const criterios = [[10,18], [13,18], [16,18], [17,18], [18,18]];
+      const hoyosA = hoyosPorScorecard[a.id] || {};
+      const hoyosB = hoyosPorScorecard[b.id] || {};
+
+      for (const [desde, hasta] of criterios) {
+        const sa = sumaHoyosArray(hoyosA, desde, hasta);
+        const sb = sumaHoyosArray(hoyosB, desde, hasta);
+        if (sa !== sb) return sa - sb;
+      }
+
+      return String(a.display_name || "").localeCompare(String(b.display_name || ""), "es");
+    }
+
+    function jugadorEnRangoScratch(j, genero) {
+      if (esNoValido(j)) return false;
+      if (generoJugador(j) !== genero) return false;
+      const idx = parseNumero(j.official_index);
+      if (idx === null) return false;
+      if (genero === "male") return idx >= -6 && idx <= 9;
+      if (genero === "female") return idx >= -6 && idx <= 54;
+      return false;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function valorDisplay(valor, fallback = "-") {
+      if (valor === undefined || valor === null || valor === "") return fallback;
+      return String(valor);
+    }
+
+    function ordenarCategorias(cats) {
+      return cats.slice().sort((a, b) => {
+        const oa = a.display_order ?? 99;
+        const ob = b.display_order ?? 99;
+        if (oa !== ob) return oa - ob;
+        return String(a.name || "").localeCompare(String(b.name || ""), "es");
+      });
+    }
+
+    function categoriaSlotBasico(cat) {
+      const nombre = normalizarTexto(cat?.name || "");
+
+      if (nombre.includes("negra") || nombre.includes("negras")) return "negras";
+      if (nombre.includes("amarilla") || nombre.includes("amarillas")) return "amarillas";
+
+      if (nombre.includes("roja") || nombre.includes("rojas") || nombre.includes("dama") || nombre.includes("damas")) {
+        return "rojas";
+      }
+
+      if (nombre.includes("blanca") || nombre.includes("blancas")) {
+        // Casos explícitos: Blancas A / Blancas B
+        if (/\bblancas?\s*b\b/.test(nombre) || /\bb\s*blancas?\b/.test(nombre)) return "blancas_b";
+        if (/\bblancas?\s*a\b/.test(nombre) || /\ba\s*blancas?\b/.test(nombre)) return "blancas_a";
+
+        // Casos por rango de index: 15.1 a 21 = A / 21.1 a 54 = B
+        if (nombre.includes("21 1") || nombre.includes("21.1") || nombre.includes("21,1") || nombre.includes("21 a 54") || nombre.includes("21 hasta 54") || nombre.includes("54")) {
+          return "blancas_b";
+        }
+        if (nombre.includes("15 1") || nombre.includes("15.1") || nombre.includes("15,1") || nombre.includes("15 a 21") || nombre.includes("15 hasta 21")) {
+          return "blancas_a";
+        }
+
+        return "blancas";
+      }
+
+      return "otros";
+    }
+
+    function getCategoriasConJugadores() {
+      const slots = [
+        { key: "negras", titulo: "Negras", cats: [] },
+        { key: "amarillas", titulo: "Amarillas", cats: [] },
+        { key: "blancas_a", titulo: "Blancas A", cats: [] },
+        { key: "blancas_b", titulo: "Blancas B", cats: [] },
+        { key: "rojas", titulo: "Rojas Damas", cats: [] }
+      ];
+
+      const slotMap = new Map(slots.map(s => [s.key, s]));
+      const ordenadas = ordenarCategorias(categorias);
+
+      // Primero asigno las categorías claras.
+      const blancasSinLetra = [];
+
+      ordenadas.forEach(cat => {
+        const slot = categoriaSlotBasico(cat);
+
+        if (slot === "blancas") {
+          blancasSinLetra.push(cat);
+          return;
+        }
+
+        if (slotMap.has(slot)) slotMap.get(slot).cats.push(cat);
+      });
+
+      // Si las dos categorías se llaman parecido, las separo por orden:
+      // primera Blanca = A, segunda Blanca = B.
+      blancasSinLetra.forEach((cat, idx) => {
+        const destino = idx === 0 ? "blancas_a" : "blancas_b";
+        slotMap.get(destino).cats.push(cat);
+      });
+
+      return slots.map(slot => {
+        const ids = new Set(slot.cats.map(c => c.id));
+        const lista = jugadores
+          .filter(j => ids.has(j.category_id))
+          .slice()
+          .sort(compararJugadores);
+
+        return {
+          key: slot.key,
+          cat: { name: slot.titulo },
+          lista
+        };
+      });
+    }
+
+    function getPageSize(grupo) {
+      return grupo?.key === "rojas" ? ROJAS_PAGE_SIZE : PAGE_SIZE;
+    }
+
+    function calcularMaxPages(grupos) {
+      if (!grupos.length) return 1;
+      return Math.max(...grupos.map(g => Math.ceil(g.lista.length / getPageSize(g)) || 1), 1);
+    }
+
+    function calcularPosiciones(lista) {
+      let posicion = 1;
+      return lista.map(j => ({ jugador: j, pos: esNoValido(j) ? "" : posicion++ }));
+    }
+
+    function serieTexto(j) {
+      // Preparado para torneos en serie si luego agregamos campos en scorecards:
+      // serie_fecha_1_net, serie_fecha_2_net, serie_fecha_3_net, series_total
+      const f1 = j.serie_fecha_1_net ?? j.series_f1_net ?? j.net_fecha_1 ?? null;
+      const f2 = j.serie_fecha_2_net ?? j.series_f2_net ?? j.net_fecha_2 ?? null;
+      const f3 = j.serie_fecha_3_net ?? j.series_f3_net ?? j.net_fecha_3 ?? null;
+      const total = j.series_total ?? j.total_serie ?? null;
+
+      const partes = [];
+      if (f1 !== null && f1 !== undefined && f1 !== "") partes.push(`F1 ${f1}`);
+      if (f2 !== null && f2 !== undefined && f2 !== "") partes.push(`F2 ${f2}`);
+      if (f3 !== null && f3 !== undefined && f3 !== "") partes.push(`F3 ${f3}`);
+      if (total !== null && total !== undefined && total !== "") partes.push(`TOTAL ${total}`);
+      return partes.join(" · ");
+    }
+
+    function renderPlayerCard(item, indexInPage) {
+      const j = item.jugador;
+      const estado = esNoValido(j) ? textoEstadoVisible(j) : "";
+      const gross = estado || valorDisplay(j.gross);
+      const hcp = estado || valorDisplay(j.playing_handicap);
+      const netoBase = esAmericana() ? valorDisplay(j.gross) : valorDisplay(j.net ?? j.total);
+      const neto = estado || netoBase;
+      const serie = serieTexto(j);
+      const top1 = Number(item.pos) === 1 ? "top1" : "";
+
+      return `
+        <div class="player-card ${top1}">
+          <div class="pos">${item.pos ? item.pos + "°" : ""}</div>
+          <div class="p-main">
+            <div class="p-name">${escapeHtml(j.display_name || "Sin nombre")}</div>
+            <div class="p-sub">
+              <span>Gross ${escapeHtml(gross)}</span>
+              <span>HCP ${escapeHtml(hcp)}</span>
+            </div>
+            ${serie ? `<div class="series-line">${escapeHtml(serie)}</div>` : ""}
+          </div>
+          <div class="scorebox">
+            <div class="net">${escapeHtml(neto)}</div>
+            <div class="label-net">Neto</div>
+          </div>
+        </div>
+      `;
+    }
+
+
+    function mediaInlineHtml() {
+      if (!MOSTRAR_MEDIA) return "";
+
+      if (!mediaItems.length) {
+        return `
+          <div class="media-inline">
+            <div class="media-title">Fotos / Sponsors / QR</div>
+            <div class="media-empty">
+              <div class="big">⛳</div>
+              <div class="small">Sin archivos cargados en tv-media</div>
+            </div>
+          </div>
+        `;
+      }
+
+      const item = mediaItems[mediaIndex] || mediaItems[0];
+      return `
+        <div class="media-inline">
+          <div class="media-title">${escapeHtml(item.label || "TV")}</div>
+          <img class="media-img media-${escapeHtml(item.type || 'imagen')}" src="${escapeHtml(item.url)}" alt="${escapeHtml(item.label || "Imagen TV")}" onerror="this.closest('.media-inline').style.display='none'">
+        </div>
+      `;
+    }
+
+    function renderCategoria(grupo, page) {
+      const listaConPos = calcularPosiciones(grupo.lista);
+      const pageSize = getPageSize(grupo);
+      const start = page * pageSize;
+      const slice = listaConPos.slice(start, start + pageSize);
+      const totalPagesCat = Math.max(1, Math.ceil(listaConPos.length / pageSize));
+      const desde = listaConPos.length ? Math.min(start + 1, listaConPos.length) : 0;
+      const hasta = Math.min(start + pageSize, listaConPos.length);
+      const esRojas = grupo.key === "rojas";
+      const categoryClass = esRojas ? "category category-rojas" : "category";
+      const playersClass = esRojas ? "players players-rojas" : "players";
+
+      if (!slice.length) {
+        return `
+          <article class="${categoryClass}">
+            <div class="cat-head">
+              <div class="cat-name">${escapeHtml(grupo.cat.name)}</div>
+              <div class="cat-page">${listaConPos.length} jugadores</div>
+            </div>
+            <div class="empty-cat">Sin más jugadores<br>en esta página</div>
+            ${esRojas ? mediaInlineHtml() : ""}
+          </article>
+        `;
+      }
+
+      return `
+        <article class="${categoryClass}">
+          <div class="cat-head">
+            <div class="cat-name">${escapeHtml(grupo.cat.name)}</div>
+            <div class="cat-page">Puestos ${desde} al ${hasta} · pág. ${Math.min(page + 1, totalPagesCat)}/${totalPagesCat}</div>
+          </div>
+          <div class="${playersClass}">
+            ${slice.map(renderPlayerCard).join("")}
+          </div>
+          ${esRojas ? mediaInlineHtml() : ""}
+        </article>
+      `;
+    }
+
+    function renderScratch() {
+      const cab = esMedal()
+        ? jugadores.filter(j => jugadorEnRangoScratch(j, "male")).slice().sort(compararScratch)[0]
+        : null;
+
+      const dam = esMedal()
+        ? jugadores.filter(j => jugadorEnRangoScratch(j, "female")).slice().sort(compararScratch)[0]
+        : null;
+
+      document.getElementById("scratchCabName").textContent = cab?.display_name || "-";
+      document.getElementById("scratchCabScore").textContent = cab?.gross ?? "-";
+      document.getElementById("scratchDamName").textContent = dam?.display_name || "-";
+      document.getElementById("scratchDamScore").textContent = dam?.gross ?? "-";
+    }
+
+    function renderLeaderboard() {
+      const grid = document.getElementById("leaderGrid");
+      const grupos = getCategoriasConJugadores();
+      maxPages = calcularMaxPages(grupos);
+      if (pageIndex >= maxPages) pageIndex = 0;
+
+      grid.innerHTML = grupos.map(grupo => {
+        const pageSize = getPageSize(grupo);
+        const totalPagesCat = Math.max(1, Math.ceil(grupo.lista.length / pageSize));
+        const pageForCat = pageIndex % totalPagesCat;
+        return renderCategoria(grupo, pageForCat);
+      }).join("");
+
+      renderScratch();
+    }
+
+    function actualizarReloj() {
+      const ahora = new Date();
+      const hh = String(ahora.getHours()).padStart(2, "0");
+      const mm = String(ahora.getMinutes()).padStart(2, "0");
+      document.getElementById("hora").textContent = `${hh}:${mm}`;
+    }
+
+    function marcarRefresh() {
+      const ahora = new Date();
+      const hh = String(ahora.getHours()).padStart(2, "0");
+      const mm = String(ahora.getMinutes()).padStart(2, "0");
+      document.getElementById("refreshInfo").textContent = `Última act.: ${hh}:${mm}`;
+    }
+
+    function publicStorageUrl(path) {
+      const base = supabase.storage.from("tv-media").getPublicUrl(path).data.publicUrl;
+      return base + "?v=" + Date.now();
+    }
+
+    function imagenExiste(url) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    }
+
+    async function listarImagenesStorage(folder, fallbackNames = []) {
+      let urls = [];
+
+      try {
+        const { data, error } = await supabase
+          .storage
+          .from("tv-media")
+          .list(folder, {
+            limit: 60,
+            sortBy: { column: "name", order: "asc" }
+          });
+
+        if (!error && Array.isArray(data)) {
+          urls = data
+            .filter(file => file && file.name && !file.name.startsWith("."))
+            .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file.name))
+            .map(file => publicStorageUrl(`${folder}/${file.name}`));
+        }
+      } catch (_) {
+        urls = [];
+      }
+
+      // Respaldo por si el navegador/TV no puede listar Storage.
+      if (!urls.length && fallbackNames.length) {
+        const posibles = fallbackNames.map(name => publicStorageUrl(`${folder}/${name}`));
+        const checks = await Promise.all(posibles.map(async url => (await imagenExiste(url)) ? url : null));
+        urls = checks.filter(Boolean);
+      }
+
+      return urls;
+    }
+
+
+    function audioUrl() {
+      return supabase.storage.from("tv-media").getPublicUrl(AUDIO_PATH).data.publicUrl + "?v=" + Date.now();
+    }
+
+    function setMusicStatus(text, active = false) {
+      const el = document.getElementById("musicStatus");
+      if (!el) return;
+      el.textContent = text;
+      el.classList.toggle("off", !active);
+    }
+
+    async function iniciarMusica() {
+      if (!MUSICA_ACTIVA) {
+        setMusicStatus("🔇 Sin música", false);
+        return;
+      }
+
+      const audio = document.getElementById("bgMusic");
+      if (!audio) return;
+
+      if (!audio.src) {
+        audio.src = audioUrl();
+        audio.volume = 0.35;
+      }
+
+      try {
+        await audio.play();
+        setMusicStatus("🎵 Música", true);
+      } catch (err) {
+        // Muchos navegadores/Smart TV bloquean el audio hasta que haya un click.
+        setMusicStatus("🎵 Click", false);
+      }
+    }
+
+    function pausarMusica() {
+      const audio = document.getElementById("bgMusic");
+      if (audio) audio.pause();
+      setMusicStatus("🔇 Pausa", false);
+    }
+    async function cargarMedia() {
+      mediaUrls = [];
+      mediaItems = [];
+      mediaIndex = 0;
+
+      if (!MOSTRAR_MEDIA) {
+        renderLeaderboard();
+        return;
+      }
+
+      const nombresFotos = Array.from({ length: 10 }, (_, i) => `foto_${String(i + 1).padStart(2, "0")}.jpg`);
+      const nombresSponsors = [];
+      for (let i = 1; i <= 20; i++) {
+        const n = String(i).padStart(2, "0");
+        nombresSponsors.push(`sponsor_${n}.png`, `sponsor_${n}.jpg`, `sponsor_${n}.webp`);
+      }
+
+      const fotos = await listarImagenesStorage("leaderboard", nombresFotos);
+      const sponsors = await listarImagenesStorage("sponsors", nombresSponsors);
+
+      const logoUrl = publicStorageUrl("fixed/logo.png");
+      const qrUrl = publicStorageUrl("fixed/qr.png");
+
+      const [hayLogo, hayQr] = await Promise.all([
+        imagenExiste(logoUrl),
+        imagenExiste(qrUrl)
+      ]);
+
+      const logoItem = hayLogo ? { type: "logo", label: "Villa María Golf", url: logoUrl } : null;
+      const qrItem = hayQr ? { type: "qr", label: "QR inscripción", url: qrUrl } : null;
+      const sponsorItems = sponsors.map(url => ({ type: "sponsor", label: "Sponsor", url }));
+      const fotoItems = fotos.map(url => ({ type: "foto", label: "Fotos del torneo", url }));
+
+      if (fotoItems.length) {
+        fotoItems.forEach((foto, idx) => {
+          mediaItems.push(foto);
+          if ((idx + 1) % 3 === 0 && sponsorItems.length) {
+            mediaItems.push(sponsorItems[Math.floor(idx / 3) % sponsorItems.length]);
+          }
+        });
+        if (qrItem) mediaItems.push(qrItem);
+        if (logoItem) mediaItems.push(logoItem);
+        sponsorItems.forEach(s => {
+          if (!mediaItems.includes(s)) mediaItems.push(s);
+        });
+      } else {
+        if (logoItem) mediaItems.push(logoItem);
+        if (qrItem) mediaItems.push(qrItem);
+        mediaItems.push(...sponsorItems);
+      }
+
+      mediaUrls = mediaItems.map(x => x.url);
+      renderMedia();
+      renderLeaderboard();
+
+      if (mediaTimer) clearInterval(mediaTimer);
+      mediaTimer = setInterval(() => {
+        if (!mediaItems.length) return;
+        mediaIndex = (mediaIndex + 1) % mediaItems.length;
+        renderMedia();
+        renderLeaderboard();
+      }, MEDIA_ROTATE_MS);
+    }
+
+    function renderMedia() {
+      const media = document.getElementById("mediaContent");
+      const mainArea = document.getElementById("mainArea");
+      const panel = document.getElementById("mediaPanel");
+
+      mainArea.style.gridTemplateColumns = "1fr";
+      panel.classList.add("hidden");
+
+      if (!media) return;
+
+      if (!mediaItems.length || !MOSTRAR_MEDIA) {
+        media.innerHTML = `<div class="big">⛳</div><div class="small">Sin archivos cargados en tv-media</div>`;
+        return;
+      }
+
+      const item = mediaItems[mediaIndex] || mediaItems[0];
+      media.innerHTML = `<img class="media-img media-${escapeHtml(item.type || 'imagen')}" src="${escapeHtml(item.url)}" alt="${escapeHtml(item.label || "Imagen TV")}">`;
+    }
+
+    async function cargarTorneosParaSelector() {
+      const setup = document.getElementById("setup");
+      const select = document.getElementById("torneoSelect");
+
+      setup.style.display = "flex";
+      document.getElementById("loading").classList.add("hidden");
+
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select("id, name, tournament_date")
+        .order("tournament_date", { ascending: false })
+        .limit(20);
+
+      if (error) {
+        select.innerHTML = `<option value="">No se pudieron cargar torneos</option>`;
+        return;
+      }
+
+      select.innerHTML = `<option value="">Seleccionar torneo...</option>` +
+        (data || []).map(t => `<option value="${t.id}">${escapeHtml(formatearFecha(t.tournament_date))} · ${escapeHtml(t.name)}</option>`).join("");
+    }
+
+    async function cargarLeaderboard() {
+      if (!torneoId || cargando) return;
+      cargando = true;
+
+      try {
+        const { data: torneo, error: errorTorneo } = await supabase
+          .from("tournaments")
+          .select(`
+            id,
+            name,
+            tournament_date,
+            game_modes ( name )
+          `)
+          .eq("id", torneoId)
+          .single();
+
+        if (errorTorneo || !torneo) throw errorTorneo || new Error("Torneo no encontrado");
+
+        torneoActual = torneo;
+        document.getElementById("titulo").textContent = torneo.name;
+        document.getElementById("subtitulo").textContent = `${formatearFecha(torneo.tournament_date)} · ${torneo.game_modes?.name || ""}`;
+
+        const { data: cats, error: errorCats } = await supabase
+          .from("tournament_categories")
+          .select("id, name, display_order, gender")
+          .eq("tournament_id", torneoId)
+          .order("display_order", { ascending: true });
+
+        if (errorCats) throw errorCats;
+        categorias = cats || [];
+
+        const { data: scorecards, error: errorSc } = await supabase
+          .from("scorecards")
+          .select(`
+            id,
+            display_name,
+            gross,
+            net,
+            total,
+            card_status,
+            category_id,
+            official_index,
+            playing_handicap,
+            player_gender,
+            hole_scores,
+            serie_fecha_1_net,
+            serie_fecha_2_net,
+            serie_fecha_3_net,
+            series_f1_net,
+            series_f2_net,
+            series_f3_net,
+            net_fecha_1,
+            net_fecha_2,
+            net_fecha_3,
+            series_total,
+            total_serie
+          `)
+          .eq("tournament_id", torneoId);
+
+        if (errorSc) {
+          // Si algunas columnas de serie todavía no existen, hago una consulta básica.
+          const { data: scorecardsBasico, error: errorBasico } = await supabase
+            .from("scorecards")
+            .select(`
+              id,
+              display_name,
+              gross,
+              net,
+              total,
+              card_status,
+              category_id,
+              official_index,
+              playing_handicap,
+              player_gender,
+              hole_scores
+            `)
+            .eq("tournament_id", torneoId);
+
+          if (errorBasico) throw errorBasico;
+          jugadores = scorecardsBasico || [];
+        } else {
+          jugadores = scorecards || [];
+        }
+
+        hoyosPorScorecard = {};
+        jugadores.forEach(j => {
+          hoyosPorScorecard[j.id] = {};
+          const holeScores = j.hole_scores || {};
+          Object.entries(holeScores).forEach(([holeNumber, data]) => {
+            const hole = Number(holeNumber);
+            hoyosPorScorecard[j.id][hole] = data && typeof data === "object" ? (data.strokes ?? null) : (data ?? null);
+          });
+        });
+
+        renderLeaderboard();
+        marcarRefresh();
+        document.getElementById("loading").classList.add("hidden");
+      } catch (err) {
+        console.error(err);
+        document.getElementById("titulo").textContent = "Error al cargar leaderboard";
+        document.getElementById("subtitulo").textContent = err?.message || "";
+        document.getElementById("leaderGrid").innerHTML = `<div class="empty-cat">No se pudieron cargar los datos.</div>`;
+        document.getElementById("loading").classList.add("hidden");
+      } finally {
+        cargando = false;
+      }
+    }
+
+    function iniciarRotacion() {
+      if (rotationTimer) clearInterval(rotationTimer);
+      rotationTimer = setInterval(() => {
+        pageIndex = (pageIndex + 1) % Math.max(1, maxPages);
+        renderLeaderboard();
+      }, ROTATE_MS);
+    }
+
+    function iniciarRefreshFallback() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(cargarLeaderboard, FALLBACK_REFRESH_MS);
+    }
+
+    function iniciarRealtime() {
+      if (!torneoId) return;
+      if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+
+      realtimeChannel = supabase
+        .channel(`leaderboard-tv-${torneoId}`)
+        .on("postgres_changes", {
+          event: "*",
+          schema: "public",
+          table: "scorecards",
+          filter: `tournament_id=eq.${torneoId}`
+        }, () => cargarLeaderboard())
+        .on("postgres_changes", {
+          event: "*",
+          schema: "public",
+          table: "tournament_categories",
+          filter: `tournament_id=eq.${torneoId}`
+        }, () => cargarLeaderboard())
+        .subscribe();
+    }
+
+    async function inicializar() {
+      actualizarReloj();
+      setInterval(actualizarReloj, 1000);
+
+      document.getElementById("btnAbrir").addEventListener("click", () => {
+        const id = document.getElementById("torneoSelect").value;
+        if (!id) return;
+        window.location.href = `${window.location.pathname}?id=${encodeURIComponent(id)}`;
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key.toLowerCase() === "f") document.documentElement.requestFullscreen?.();
+        if (e.key === "ArrowRight") { pageIndex = (pageIndex + 1) % Math.max(1, maxPages); renderLeaderboard(); }
+        if (e.key === "ArrowLeft") { pageIndex = (pageIndex - 1 + Math.max(1, maxPages)) % Math.max(1, maxPages); renderLeaderboard(); }
+      });
+
+      document.addEventListener("click", () => {
+        document.documentElement.requestFullscreen?.();
+        iniciarMusica();
+      }, { once: true });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key.toLowerCase() === "m") {
+          const audio = document.getElementById("bgMusic");
+          if (audio && !audio.paused) pausarMusica();
+          else iniciarMusica();
+        }
+      });
+
+      if (!torneoId) {
+        await cargarTorneosParaSelector();
+        return;
+      }
+
+      await cargarLeaderboard();
+      await cargarMedia();
+      iniciarRotacion();
+      iniciarRefreshFallback();
+      iniciarRealtime();
+      iniciarMusica();
+    }
+
+    inicializar();
+  </script>
+</body>
+
+</html>
