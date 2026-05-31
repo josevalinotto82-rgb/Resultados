@@ -405,9 +405,11 @@
     }
 
     .media-img.media-foto {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
     }
 
     .media-img.media-logo,
@@ -534,6 +536,61 @@
       cursor: pointer;
     }
 
+    .control-panel {
+      margin: 12px 0 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .control-check {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      background: #f9fafb;
+      color: #111827;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .control-check input {
+      width: auto;
+      margin: 0;
+      transform: scale(1.15);
+      accent-color: #166534;
+    }
+
+    .control-title {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #166534;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .player-card.scratch-winner {
+      background: linear-gradient(135deg, rgba(59,130,246,.30), rgba(255,255,255,.11));
+      border-color: rgba(96,165,250,.58);
+      box-shadow: inset 0 0 0 1px rgba(147,197,253,.12);
+    }
+
+    .player-card.scratch-winner .pos {
+      color: #93c5fd;
+    }
+
+    .player-card.scratch-winner .p-name {
+      color: #dbeafe;
+    }
+
+    .scratch-card.hidden {
+      display: none;
+    }
+
     .loading {
       position: fixed;
       inset: 0;
@@ -563,10 +620,27 @@
   <div id="setup" class="setup" style="display:none;">
     <div class="setup-card">
       <h1>Leaderboard TV</h1>
-      <p>Elegí un torneo para proyectar o abrí esta página con <strong>?id=ID_DEL_TORNEO</strong>.</p>
+      <p>Elegí un torneo y configurá qué querés mostrar en la TV.</p>
       <select id="torneoSelect">
         <option value="">Cargando torneos...</option>
       </select>
+
+      <div class="control-title">Premios / scratch</div>
+      <div class="control-panel">
+        <label class="control-check"><input type="checkbox" id="ctrlScratchCab" checked> Mostrar Scratch Caballeros</label>
+        <label class="control-check"><input type="checkbox" id="ctrlScratchDam" checked> Mostrar Scratch Damas</label>
+        <label class="control-check"><input type="checkbox" id="ctrlExcluirScratch" checked> Saltear ganador scratch en categoría</label>
+        <label class="control-check"><input type="checkbox" id="ctrlMusica" checked> Música</label>
+      </div>
+
+      <div class="control-title">Multimedia</div>
+      <div class="control-panel">
+        <label class="control-check"><input type="checkbox" id="ctrlFotos" checked> Fotos del torneo</label>
+        <label class="control-check"><input type="checkbox" id="ctrlSponsors" checked> Sponsors</label>
+        <label class="control-check"><input type="checkbox" id="ctrlLogoMedia" checked> Escudo / logo</label>
+        <label class="control-check"><input type="checkbox" id="ctrlQr" checked> QR</label>
+      </div>
+
       <button id="btnAbrir">Abrir en modo TV</button>
     </div>
   </div>
@@ -602,7 +676,7 @@
     </main>
 
     <footer class="bottom">
-      <div class="scratch-card">
+      <div id="scratchCabCard" class="scratch-card">
         <div class="trophy">🏆</div>
         <div class="scratch-info">
           <div class="scratch-title">Scratch Caballeros</div>
@@ -611,7 +685,7 @@
         <div id="scratchCabScore" class="scratch-score">-</div>
       </div>
 
-      <div class="scratch-card">
+      <div id="scratchDamCard" class="scratch-card">
         <div class="trophy">🏆</div>
         <div class="scratch-info">
           <div class="scratch-title">Scratch Damas</div>
@@ -638,17 +712,26 @@
     );
 
     const params = new URLSearchParams(window.location.search);
+    const SETTINGS_ID = params.get("settings") || "main";
     let torneoId = (params.get("id") || "").trim();
-    const MOSTRAR_MEDIA = true;
-    const MUSICA_ACTIVA = !["0", "false", "no"].includes(String(params.get("music") || "1").toLowerCase());
+
+    let MOSTRAR_SCRATCH_CAB = true;
+    let MOSTRAR_SCRATCH_DAM = true;
+    let EXCLUIR_SCRATCH_EN_CATEGORIA = true;
+    let MOSTRAR_FOTOS = true;
+    let MOSTRAR_SPONSORS = true;
+    let MOSTRAR_LOGO_MEDIA = true;
+    let MOSTRAR_QR = true;
+    let MOSTRAR_MEDIA = true;
+    let MUSICA_ACTIVA = true;
     const AUDIO_PATH = "audio/musica.mp3";
 
     const PAGE_SIZE = 10;
     const ROJAS_PAGE_SIZE = 5;
     const CATEGORY_COLUMNS = 5;
-    const ROTATE_MS = 14000;
+    let ROTATE_MS = 14000;
     const FALLBACK_REFRESH_MS = 15000;
-    const MEDIA_ROTATE_MS = 9000;
+    let MEDIA_ROTATE_MS = 9000;
 
     let torneoActual = null;
     let categorias = [];
@@ -664,6 +747,90 @@
     let mediaIndex = 0;
     let mediaTimer = null;
     let cargando = false;
+    let settingsActual = null;
+    let settingsChannel = null;
+    let settingsPollTimer = null;
+    let ultimaMarcaSettings = "";
+    let scratchGanadoresCategoriaSet = new Set();
+
+    function boolSetting(row, key, fallback = true) {
+      const valor = row?.[key];
+      return valor === null || valor === undefined ? fallback : !!valor;
+    }
+
+    function firmaSettings(row) {
+      return JSON.stringify({
+        tournament_id: row?.tournament_id || "",
+        show_scratch_male: row?.show_scratch_male,
+        show_scratch_female: row?.show_scratch_female,
+        exclude_scratch_from_category: row?.exclude_scratch_from_category,
+        show_photos: row?.show_photos,
+        show_sponsors: row?.show_sponsors,
+        show_logo_media: row?.show_logo_media,
+        show_qr: row?.show_qr,
+        music_enabled: row?.music_enabled,
+        media_rotation_seconds: row?.media_rotation_seconds,
+        leaderboard_rotation_seconds: row?.leaderboard_rotation_seconds,
+        updated_at: row?.updated_at || ""
+      });
+    }
+
+    function aplicarSettings(row) {
+      settingsActual = row || {};
+      torneoId = String(row?.tournament_id || params.get("id") || "").trim();
+
+      MOSTRAR_SCRATCH_CAB = boolSetting(row, "show_scratch_male", true);
+      MOSTRAR_SCRATCH_DAM = boolSetting(row, "show_scratch_female", true);
+      EXCLUIR_SCRATCH_EN_CATEGORIA = boolSetting(row, "exclude_scratch_from_category", true);
+      MOSTRAR_FOTOS = boolSetting(row, "show_photos", true);
+      MOSTRAR_SPONSORS = boolSetting(row, "show_sponsors", true);
+      MOSTRAR_LOGO_MEDIA = boolSetting(row, "show_logo_media", true);
+      MOSTRAR_QR = boolSetting(row, "show_qr", true);
+      MUSICA_ACTIVA = boolSetting(row, "music_enabled", true);
+      MOSTRAR_MEDIA = MOSTRAR_FOTOS || MOSTRAR_SPONSORS || MOSTRAR_LOGO_MEDIA || MOSTRAR_QR;
+
+      const mediaSeg = Number(row?.media_rotation_seconds || 9);
+      const leaderSeg = Number(row?.leaderboard_rotation_seconds || 14);
+      MEDIA_ROTATE_MS = Math.max(3, mediaSeg) * 1000;
+      ROTATE_MS = Math.max(5, leaderSeg) * 1000;
+    }
+
+    async function cargarSettings() {
+      const { data, error } = await supabase
+        .from("tv_settings")
+        .select("*")
+        .eq("id", SETTINGS_ID)
+        .single();
+
+      if (error || !data) throw error || new Error("No se encontró la configuración de TV");
+      aplicarSettings(data);
+      ultimaMarcaSettings = firmaSettings(data);
+      return data;
+    }
+
+    async function recargarPorCambioSettings() {
+      const viejoTorneoId = torneoId;
+      await cargarSettings();
+
+      if (!torneoId) {
+        document.getElementById("titulo").textContent = "Sin torneo seleccionado";
+        document.getElementById("subtitulo").textContent = "Elegí un torneo desde tv_control.html";
+        document.getElementById("leaderGrid").innerHTML = `<div class="empty-cat">Sin torneo seleccionado</div>`;
+        document.getElementById("loading").classList.add("hidden");
+        return;
+      }
+
+      if (viejoTorneoId !== torneoId) {
+        pageIndex = 0;
+        iniciarRealtime();
+      }
+
+      await cargarLeaderboard();
+      await cargarMedia();
+      iniciarRotacion();
+      if (MUSICA_ACTIVA) iniciarMusica();
+      else pausarMusica();
+    }
 
     function fechaAObjeto(fecha) {
       const texto = String(fecha || "").trim();
@@ -901,7 +1068,9 @@
     }
 
     function getCategoriasConJugadores() {
-      const slots = [
+      const ordenadas = ordenarCategorias(categorias);
+
+      const slotsBase = [
         { key: "negras", titulo: "Negras", cats: [] },
         { key: "amarillas", titulo: "Amarillas", cats: [] },
         { key: "blancas_a", titulo: "Blancas A", cats: [] },
@@ -909,11 +1078,9 @@
         { key: "rojas", titulo: "Rojas Damas", cats: [] }
       ];
 
-      const slotMap = new Map(slots.map(s => [s.key, s]));
-      const ordenadas = ordenarCategorias(categorias);
-
-      // Primero asigno las categorías claras.
+      const slotMap = new Map(slotsBase.map(s => [s.key, s]));
       const blancasSinLetra = [];
+      const extras = [];
 
       ordenadas.forEach(cat => {
         const slot = categoriaSlotBasico(cat);
@@ -923,7 +1090,18 @@
           return;
         }
 
-        if (slotMap.has(slot)) slotMap.get(slot).cats.push(cat);
+        if (slotMap.has(slot)) {
+          slotMap.get(slot).cats.push(cat);
+          return;
+        }
+
+        // Cualquier categoría no tradicional del torneo:
+        // Principiantes, Senior, Mixta, Invitados, etc.
+        extras.push({
+          key: `extra_${cat.id}`,
+          titulo: cat.name || "Sin categoría",
+          cats: [cat]
+        });
       });
 
       // Si las dos categorías se llaman parecido, las separo por orden:
@@ -933,7 +1111,7 @@
         slotMap.get(destino).cats.push(cat);
       });
 
-      return slots.map(slot => {
+      const gruposBase = slotsBase.map(slot => {
         const ids = new Set(slot.cats.map(c => c.id));
         const lista = jugadores
           .filter(j => ids.has(j.category_id))
@@ -946,10 +1124,54 @@
           lista
         };
       });
+
+      const gruposExtras = extras.map(slot => {
+        const ids = new Set(slot.cats.map(c => c.id));
+        const lista = jugadores
+          .filter(j => ids.has(j.category_id))
+          .slice()
+          .sort(compararJugadores);
+
+        return {
+          key: slot.key,
+          cat: { name: slot.titulo },
+          lista
+        };
+      });
+
+      let grupos = gruposBase.filter(g => g.lista.length > 0);
+      const extrasConJugadores = gruposExtras.filter(g => g.lista.length > 0);
+
+      // Agrego al leaderboard las categorías no tradicionales del torneo.
+      grupos.push(...extrasConJugadores);
+
+      // Si todavía no hay tarjetas cargadas, muestro igual las categorías disponibles.
+      if (!grupos.length) {
+        grupos = [
+          ...gruposBase.filter(g => g.cat?.name),
+          ...gruposExtras.filter(g => g.cat?.name)
+        ];
+      }
+
+      // La TV está diseñada para 5 columnas.
+      // Si hay más de 5 categorías, muestro las primeras 5 por orden.
+      grupos = grupos.slice(0, 5);
+
+      // El bloque multimedia va debajo de Rojas Damas si existe.
+      // Si no existe Rojas, va debajo de la última categoría visible.
+      const indiceRojas = grupos.findIndex(g => g.key === "rojas");
+      const indiceMedia = MOSTRAR_MEDIA ? (indiceRojas >= 0 ? indiceRojas : grupos.length - 1) : -1;
+
+      grupos = grupos.map((g, idx) => ({
+        ...g,
+        mediaSlot: MOSTRAR_MEDIA && idx === indiceMedia
+      }));
+
+      return grupos;
     }
 
     function getPageSize(grupo) {
-      return grupo?.key === "rojas" ? ROJAS_PAGE_SIZE : PAGE_SIZE;
+      return grupo?.mediaSlot ? ROJAS_PAGE_SIZE : PAGE_SIZE;
     }
 
     function calcularMaxPages(grupos) {
@@ -957,9 +1179,48 @@
       return Math.max(...grupos.map(g => Math.ceil(g.lista.length / getPageSize(g)) || 1), 1);
     }
 
+    function calcularScratchGanadores() {
+      const ganadores = new Set();
+
+      if (!esMedal()) return ganadores;
+
+      if (MOSTRAR_SCRATCH_CAB) {
+        const cab = jugadores
+          .filter(j => jugadorEnRangoScratch(j, "male"))
+          .slice()
+          .sort(compararScratch)[0];
+
+        if (cab?.id) ganadores.add(cab.id);
+      }
+
+      if (MOSTRAR_SCRATCH_DAM) {
+        const dam = jugadores
+          .filter(j => jugadorEnRangoScratch(j, "female"))
+          .slice()
+          .sort(compararScratch)[0];
+
+        if (dam?.id) ganadores.add(dam.id);
+      }
+
+      return ganadores;
+    }
+
     function calcularPosiciones(lista) {
       let posicion = 1;
-      return lista.map(j => ({ jugador: j, pos: esNoValido(j) ? "" : posicion++ }));
+
+      return lista.map(j => {
+        const scratchWinner = EXCLUIR_SCRATCH_EN_CATEGORIA && scratchGanadoresCategoriaSet.has(j.id);
+
+        if (esNoValido(j)) {
+          return { jugador: j, pos: "", scratchWinner: false };
+        }
+
+        if (scratchWinner) {
+          return { jugador: j, pos: "", scratchWinner: true };
+        }
+
+        return { jugador: j, pos: posicion++, scratchWinner: false };
+      });
     }
 
     function serieTexto(j) {
@@ -987,10 +1248,12 @@
       const neto = estado || netoBase;
       const serie = serieTexto(j);
       const top1 = Number(item.pos) === 1 ? "top1" : "";
+      const scratchClass = item.scratchWinner ? "scratch-winner" : "";
+      const posTexto = item.scratchWinner ? "-" : (item.pos ? item.pos + "°" : "");
 
       return `
-        <div class="player-card ${top1}">
-          <div class="pos">${item.pos ? item.pos + "°" : ""}</div>
+        <div class="player-card ${top1} ${scratchClass}">
+          <div class="pos">${posTexto}</div>
           <div class="p-main">
             <div class="p-name">${escapeHtml(j.display_name || "Sin nombre")}</div>
             <div class="p-sub">
@@ -1040,9 +1303,9 @@
       const totalPagesCat = Math.max(1, Math.ceil(listaConPos.length / pageSize));
       const desde = listaConPos.length ? Math.min(start + 1, listaConPos.length) : 0;
       const hasta = Math.min(start + pageSize, listaConPos.length);
-      const esRojas = grupo.key === "rojas";
-      const categoryClass = esRojas ? "category category-rojas" : "category";
-      const playersClass = esRojas ? "players players-rojas" : "players";
+      const tieneMedia = !!grupo.mediaSlot;
+      const categoryClass = tieneMedia ? "category category-rojas" : "category";
+      const playersClass = tieneMedia ? "players players-rojas" : "players";
 
       if (!slice.length) {
         return `
@@ -1052,7 +1315,7 @@
               <div class="cat-page">${listaConPos.length} jugadores</div>
             </div>
             <div class="empty-cat">Sin más jugadores<br>en esta página</div>
-            ${esRojas ? mediaInlineHtml() : ""}
+            ${tieneMedia ? mediaInlineHtml() : ""}
           </article>
         `;
       }
@@ -1066,17 +1329,32 @@
           <div class="${playersClass}">
             ${slice.map(renderPlayerCard).join("")}
           </div>
-          ${esRojas ? mediaInlineHtml() : ""}
+          ${tieneMedia ? mediaInlineHtml() : ""}
         </article>
       `;
     }
 
     function renderScratch() {
-      const cab = esMedal()
+      const cabCard = document.getElementById("scratchCabCard");
+      const damCard = document.getElementById("scratchDamCard");
+      const bottom = document.querySelector(".bottom");
+
+      cabCard?.classList.toggle("hidden", !MOSTRAR_SCRATCH_CAB);
+      damCard?.classList.toggle("hidden", !MOSTRAR_SCRATCH_DAM);
+
+      if (bottom) {
+        const columnas = [];
+        if (MOSTRAR_SCRATCH_CAB) columnas.push("1fr");
+        if (MOSTRAR_SCRATCH_DAM) columnas.push("1fr");
+        columnas.push("auto");
+        bottom.style.gridTemplateColumns = columnas.join(" ");
+      }
+
+      const cab = (esMedal() && MOSTRAR_SCRATCH_CAB)
         ? jugadores.filter(j => jugadorEnRangoScratch(j, "male")).slice().sort(compararScratch)[0]
         : null;
 
-      const dam = esMedal()
+      const dam = (esMedal() && MOSTRAR_SCRATCH_DAM)
         ? jugadores.filter(j => jugadorEnRangoScratch(j, "female")).slice().sort(compararScratch)[0]
         : null;
 
@@ -1088,6 +1366,7 @@
 
     function renderLeaderboard() {
       const grid = document.getElementById("leaderGrid");
+      scratchGanadoresCategoriaSet = calcularScratchGanadores();
       const grupos = getCategoriasConJugadores();
       maxPages = calcularMaxPages(grupos);
       if (pageIndex >= maxPages) pageIndex = 0;
@@ -1219,15 +1498,15 @@
         nombresSponsors.push(`sponsor_${n}.png`, `sponsor_${n}.jpg`, `sponsor_${n}.webp`);
       }
 
-      const fotos = await listarImagenesStorage("leaderboard", nombresFotos);
-      const sponsors = await listarImagenesStorage("sponsors", nombresSponsors);
+      const fotos = MOSTRAR_FOTOS ? await listarImagenesStorage("leaderboard", nombresFotos) : [];
+      const sponsors = MOSTRAR_SPONSORS ? await listarImagenesStorage("sponsors", nombresSponsors) : [];
 
       const logoUrl = publicStorageUrl("fixed/logo.png");
       const qrUrl = publicStorageUrl("fixed/qr.png");
 
       const [hayLogo, hayQr] = await Promise.all([
-        imagenExiste(logoUrl),
-        imagenExiste(qrUrl)
+        MOSTRAR_LOGO_MEDIA ? imagenExiste(logoUrl) : Promise.resolve(false),
+        MOSTRAR_QR ? imagenExiste(qrUrl) : Promise.resolve(false)
       ]);
 
       const logoItem = hayLogo ? { type: "logo", label: "Villa María Golf", url: logoUrl } : null;
@@ -1449,15 +1728,54 @@
         .subscribe();
     }
 
+
+    function iniciarPollingSettings() {
+      if (settingsPollTimer) clearInterval(settingsPollTimer);
+
+      settingsPollTimer = setInterval(async () => {
+        try {
+          const { data, error } = await supabase
+            .from("tv_settings")
+            .select("*")
+            .eq("id", SETTINGS_ID)
+            .single();
+
+          if (error || !data) return;
+
+          const nuevaMarca = firmaSettings(data);
+          if (!ultimaMarcaSettings) {
+            ultimaMarcaSettings = nuevaMarca;
+            return;
+          }
+
+          if (nuevaMarca !== ultimaMarcaSettings) {
+            ultimaMarcaSettings = nuevaMarca;
+            aplicarSettings(data);
+            await recargarPorCambioSettings();
+          }
+        } catch (err) {
+          console.warn("No se pudo revisar tv_settings", err);
+        }
+      }, 5000);
+    }
+
+    function iniciarRealtimeSettings() {
+      if (settingsChannel) supabase.removeChannel(settingsChannel);
+
+      settingsChannel = supabase
+        .channel(`tv-settings-${SETTINGS_ID}`)
+        .on("postgres_changes", {
+          event: "*",
+          schema: "public",
+          table: "tv_settings",
+          filter: `id=eq.${SETTINGS_ID}`
+        }, () => recargarPorCambioSettings())
+        .subscribe();
+    }
+
     async function inicializar() {
       actualizarReloj();
       setInterval(actualizarReloj, 1000);
-
-      document.getElementById("btnAbrir").addEventListener("click", () => {
-        const id = document.getElementById("torneoSelect").value;
-        if (!id) return;
-        window.location.href = `${window.location.pathname}?id=${encodeURIComponent(id)}`;
-      });
 
       document.addEventListener("keydown", (e) => {
         if (e.key.toLowerCase() === "f") document.documentElement.requestFullscreen?.();
@@ -1478,8 +1796,24 @@
         }
       });
 
+      try {
+        await cargarSettings();
+      } catch (err) {
+        console.error(err);
+        document.getElementById("titulo").textContent = "Error en configuración TV";
+        document.getElementById("subtitulo").textContent = err?.message || "No se pudo leer tv_settings";
+        document.getElementById("leaderGrid").innerHTML = `<div class="empty-cat">No se pudo leer tv_settings.</div>`;
+        document.getElementById("loading").classList.add("hidden");
+        return;
+      }
+
       if (!torneoId) {
-        await cargarTorneosParaSelector();
+        document.getElementById("titulo").textContent = "Sin torneo seleccionado";
+        document.getElementById("subtitulo").textContent = "Elegí un torneo desde tv_control.html";
+        document.getElementById("leaderGrid").innerHTML = `<div class="empty-cat">Sin torneo seleccionado</div>`;
+        document.getElementById("loading").classList.add("hidden");
+        iniciarRealtimeSettings();
+        iniciarPollingSettings();
         return;
       }
 
@@ -1488,6 +1822,8 @@
       iniciarRotacion();
       iniciarRefreshFallback();
       iniciarRealtime();
+      iniciarRealtimeSettings();
+      iniciarPollingSettings();
       iniciarMusica();
     }
 
