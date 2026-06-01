@@ -7,7 +7,9 @@
   <title>Leaderboard TV - Villa María Golf</title>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     :root {
       --bg: #07130d;
@@ -21,7 +23,8 @@
       --danger: #f87171;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       width: 100%;
       height: 100%;
@@ -31,7 +34,9 @@
       color: var(--text);
     }
 
-    body.tv-mode { cursor: none; }
+    body.tv-mode {
+      cursor: none;
+    }
 
     .screen {
       width: 100vw;
@@ -51,9 +56,9 @@
       padding: 14px 18px;
       border: 1px solid var(--line);
       border-radius: 22px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(6px);
-      box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
     }
 
     .brand {
@@ -67,10 +72,12 @@
       width: 64px;
       height: 64px;
       object-fit: contain;
-      filter: drop-shadow(0 8px 15px rgba(0,0,0,0.28));
+      filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.28));
     }
 
-    .title-wrap { min-width: 0; }
+    .title-wrap {
+      min-width: 0;
+    }
 
     .club {
       font-size: 24px;
@@ -113,8 +120,8 @@
       gap: 8px;
       padding: 7px 12px;
       border-radius: 999px;
-      background: rgba(34,197,94,0.15);
-      border: 1px solid rgba(34,197,94,0.35);
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.35);
       color: #bbf7d0;
       font-size: 14px;
       font-weight: 800;
@@ -127,14 +134,22 @@
       height: 9px;
       border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 0 0 rgba(34,197,94,.9);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, .9);
       animation: pulse 1.8s infinite;
     }
 
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(34,197,94,.8); }
-      70% { box-shadow: 0 0 0 9px rgba(34,197,94,0); }
-      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+      0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, .8);
+      }
+
+      70% {
+        box-shadow: 0 0 0 9px rgba(34, 197, 94, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      }
     }
 
     .music-pill {
@@ -143,8 +158,8 @@
       gap: 6px;
       padding: 7px 10px;
       border-radius: 999px;
-      background: rgba(250,204,21,0.13);
-      border: 1px solid rgba(250,204,21,0.28);
+      background: rgba(250, 204, 21, 0.13);
+      border: 1px solid rgba(250, 204, 21, 0.28);
       color: #fde68a;
       font-size: 13px;
       font-weight: 900;
@@ -153,9 +168,9 @@
     }
 
     .music-pill.off {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.55);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.14);
+      color: rgba(255, 255, 255, 0.55);
     }
 
     .meta {
@@ -185,9 +200,9 @@
       min-height: 0;
       border-radius: 22px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.085);
+      background: rgba(255, 255, 255, 0.085);
       overflow: hidden;
-      box-shadow: 0 18px 45px rgba(0,0,0,0.24);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
       display: grid;
       grid-template-rows: auto 1fr;
     }
@@ -198,8 +213,8 @@
 
     .cat-head {
       padding: 14px 16px;
-      background: linear-gradient(135deg, rgba(34,197,94,.42), rgba(15,118,110,.18));
-      border-bottom: 1px solid rgba(255,255,255,0.16);
+      background: linear-gradient(135deg, rgba(34, 197, 94, .42), rgba(15, 118, 110, .18));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
     }
 
     .cat-name {
@@ -215,7 +230,7 @@
     .cat-page {
       margin-top: 3px;
       font-size: 13px;
-      color: rgba(255,255,255,0.72);
+      color: rgba(255, 255, 255, 0.72);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .08em;
@@ -236,8 +251,8 @@
     .player-card {
       min-height: 0;
       border-radius: 12px;
-      background: rgba(255,255,255,0.105);
-      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255, 255, 255, 0.105);
+      border: 1px solid rgba(255, 255, 255, 0.13);
       padding: 7px 8px;
       display: grid;
       grid-template-columns: 34px minmax(0, 1fr) 50px;
@@ -247,8 +262,8 @@
     }
 
     .player-card.top1 {
-      background: linear-gradient(135deg, rgba(250,204,21,.23), rgba(255,255,255,.11));
-      border-color: rgba(250,204,21,.42);
+      background: linear-gradient(135deg, rgba(250, 204, 21, .23), rgba(255, 255, 255, .11));
+      border-color: rgba(250, 204, 21, .42);
     }
 
     .pos {
@@ -277,7 +292,7 @@
       margin-top: 3px;
       display: flex;
       gap: 5px;
-      color: rgba(255,255,255,0.74);
+      color: rgba(255, 255, 255, 0.74);
       font-size: 11px;
       font-weight: 800;
       white-space: nowrap;
@@ -305,7 +320,7 @@
     .label-net {
       margin-top: 2px;
       font-size: 9px;
-      color: rgba(255,255,255,0.62);
+      color: rgba(255, 255, 255, 0.62);
       font-weight: 800;
       letter-spacing: .05em;
       text-transform: uppercase;
@@ -314,7 +329,7 @@
     .series-line {
       margin-top: 3px;
       font-size: 12px;
-      color: rgba(255,255,255,0.78);
+      color: rgba(255, 255, 255, 0.78);
       font-weight: 800;
       white-space: nowrap;
       overflow: hidden;
@@ -326,7 +341,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(255,255,255,0.55);
+      color: rgba(255, 255, 255, 0.55);
       font-size: 19px;
       font-weight: 800;
       text-align: center;
@@ -338,24 +353,26 @@
       height: 200px;
       border-radius: 22px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       overflow: hidden;
       position: absolute;
       right: 12px;
       bottom: 12px;
       z-index: 5;
       min-height: 0;
-      box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
     }
 
-    .media-panel.hidden { display: none; }
+    .media-panel.hidden {
+      display: none;
+    }
 
     .media-inline {
       margin: 0 8px 8px;
       min-height: 0;
       border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: radial-gradient(circle at center, rgba(22, 101, 52, 0.18), rgba(0,0,0,0.34));
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: radial-gradient(circle at center, rgba(22, 101, 52, 0.18), rgba(0, 0, 0, 0.34));
       overflow: hidden;
       position: relative;
       display: flex;
@@ -386,7 +403,7 @@
       top: 14px;
       padding: 7px 10px;
       border-radius: 999px;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0, 0, 0, 0.45);
       font-size: 12px;
       font-weight: 900;
       text-transform: uppercase;
@@ -428,23 +445,29 @@
       gap: 10px;
       padding: 18px;
       text-align: center;
-      color: rgba(255,255,255,0.68);
+      color: rgba(255, 255, 255, 0.68);
       font-weight: 800;
     }
 
-    .media-empty .big { font-size: 46px; }
-    .media-empty .small { font-size: 15px; line-height: 1.3; }
+    .media-empty .big {
+      font-size: 46px;
+    }
+
+    .media-empty .small {
+      font-size: 15px;
+      line-height: 1.3;
+    }
 
     .bottom {
       border: 1px solid var(--line);
       border-radius: 22px;
-      background: rgba(255,255,255,0.085);
+      background: rgba(255, 255, 255, 0.085);
       display: grid;
       grid-template-columns: 1fr 1fr auto;
       gap: 18px;
       align-items: center;
       padding: 12px 18px;
-      box-shadow: 0 18px 45px rgba(0,0,0,0.22);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
     }
 
     .scratch-card {
@@ -461,7 +484,7 @@
 
     .scratch-title {
       font-size: 13px;
-      color: rgba(255,255,255,0.64);
+      color: rgba(255, 255, 255, 0.64);
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: .1em;
@@ -487,12 +510,21 @@
     .clock {
       text-align: right;
       min-width: 190px;
-      color: rgba(255,255,255,0.74);
+      color: rgba(255, 255, 255, 0.74);
       font-weight: 900;
     }
 
-    .clock .time { font-size: 30px; color: #fff; }
-    .clock .refresh { margin-top: 2px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+    .clock .time {
+      font-size: 30px;
+      color: #fff;
+    }
+
+    .clock .refresh {
+      margin-top: 2px;
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
 
     .setup {
       position: fixed;
@@ -511,12 +543,21 @@
       color: #111827;
       border-radius: 22px;
       padding: 26px;
-      box-shadow: 0 20px 80px rgba(0,0,0,.35);
+      box-shadow: 0 20px 80px rgba(0, 0, 0, .35);
     }
 
-    .setup-card h1 { margin: 0 0 8px; color: #166534; }
-    .setup-card p { color: #4b5563; line-height: 1.35; }
-    .setup-card input, .setup-card select {
+    .setup-card h1 {
+      margin: 0 0 8px;
+      color: #166534;
+    }
+
+    .setup-card p {
+      color: #4b5563;
+      line-height: 1.35;
+    }
+
+    .setup-card input,
+    .setup-card select {
       width: 100%;
       padding: 13px 14px;
       border: 1px solid #d1d5db;
@@ -524,6 +565,7 @@
       font-size: 16px;
       margin: 8px 0 12px;
     }
+
     .setup-card button {
       width: 100%;
       border: 0;
@@ -574,9 +616,9 @@
     }
 
     .player-card.scratch-winner {
-      background: linear-gradient(135deg, rgba(59,130,246,.30), rgba(255,255,255,.11));
-      border-color: rgba(96,165,250,.58);
-      box-shadow: inset 0 0 0 1px rgba(147,197,253,.12);
+      background: linear-gradient(135deg, rgba(59, 130, 246, .30), rgba(255, 255, 255, .11));
+      border-color: rgba(96, 165, 250, .58);
+      box-shadow: inset 0 0 0 1px rgba(147, 197, 253, .12);
     }
 
     .player-card.scratch-winner .pos {
@@ -604,12 +646,23 @@
       z-index: 40;
     }
 
-    .loading.hidden { display: none; }
+    .loading.hidden {
+      display: none;
+    }
 
     @media (max-width: 1200px) {
-      .main { grid-template-columns: 1fr; }
-      .media-panel { width: 250px; height: 165px; }
-      .leader-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .media-panel {
+        width: 250px;
+        height: 165px;
+      }
+
+      .leader-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
     }
   </style>
 </head>
@@ -627,9 +680,11 @@
 
       <div class="control-title">Premios / scratch</div>
       <div class="control-panel">
-        <label class="control-check"><input type="checkbox" id="ctrlScratchCab" checked> Mostrar Scratch Caballeros</label>
+        <label class="control-check"><input type="checkbox" id="ctrlScratchCab" checked> Mostrar Scratch
+          Caballeros</label>
         <label class="control-check"><input type="checkbox" id="ctrlScratchDam" checked> Mostrar Scratch Damas</label>
-        <label class="control-check"><input type="checkbox" id="ctrlExcluirScratch" checked> Saltear ganador scratch en categoría</label>
+        <label class="control-check"><input type="checkbox" id="ctrlExcluirScratch" checked> Saltear ganador scratch en
+          categoría</label>
         <label class="control-check"><input type="checkbox" id="ctrlMusica" checked> Música</label>
       </div>
 
@@ -992,7 +1047,7 @@
       const bg = valorGross(b);
       if (ag !== bg) return ag - bg;
 
-      const criterios = [[10,18], [13,18], [16,18], [17,18], [18,18]];
+      const criterios = [[10, 18], [13, 18], [16, 18], [17, 18], [18, 18]];
       const hoyosA = hoyosPorScorecard[a.id] || {};
       const hoyosB = hoyosPorScorecard[b.id] || {};
 
@@ -1289,7 +1344,7 @@
       const item = mediaItems[mediaIndex] || mediaItems[0];
       return `
         <div class="media-inline">
-          <div class="media-title">${escapeHtml(item.label || "TV")}</div>
+          
           <img class="media-img media-${escapeHtml(item.type || 'imagen')}" src="${escapeHtml(item.url)}" alt="${escapeHtml(item.label || "Imagen TV")}" onerror="this.closest('.media-inline').style.display='none'">
         </div>
       `;
