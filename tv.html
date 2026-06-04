@@ -755,7 +755,7 @@
     </footer>
   </div>
 
-  <audio id="bgMusic" preload="auto" loop playsinline></audio>
+  <audio id="bgMusic" preload="auto" loop playsinline muted></audio>
 
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1521,10 +1521,18 @@
       }
 
       try {
+        audio.muted = true;
+        audio.volume = 0.35;
+
         await audio.play();
-        setMusicStatus("🎵 Música", true);
+
+        setTimeout(() => {
+          audio.muted = false;
+          audio.volume = 0.35;
+          setMusicStatus("🎵 Música", true);
+        }, 1200);
+
       } catch (err) {
-        // Muchos navegadores/Smart TV bloquean el audio hasta que haya un click.
         setMusicStatus("🎵 Click", false);
       }
     }
