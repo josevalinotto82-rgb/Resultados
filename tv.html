@@ -463,23 +463,43 @@
       border-radius: 22px;
       background: rgba(255, 255, 255, 0.085);
       display: grid;
-      grid-template-columns: 1fr 1fr auto;
+      grid-template-columns: 42% 42% 16%;
       gap: 18px;
       align-items: center;
       padding: 12px 18px;
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
     }
 
+    .scratch-card,
+    .clock-card {
+      min-width: 0;
+      min-height: 0;
+      border-radius: 17px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.055));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
     .scratch-card {
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
       gap: 12px;
-      min-width: 0;
+      padding: 8px 12px;
+      overflow: hidden;
+    }
+
+    .scratch-card.scratch-cab {
+      border-left: 4px solid rgba(96, 165, 250, 0.88);
+    }
+
+    .scratch-card.scratch-dam {
+      border-left: 4px solid rgba(244, 114, 182, 0.88);
     }
 
     .trophy {
-      font-size: 34px;
+      font-size: 31px;
+      filter: drop-shadow(0 5px 10px rgba(0, 0, 0, .25));
     }
 
     .scratch-title {
@@ -508,22 +528,34 @@
     }
 
     .clock {
-      text-align: right;
-      min-width: 190px;
+      text-align: center;
+      min-width: 0;
       color: rgba(255, 255, 255, 0.74);
       font-weight: 900;
     }
 
+    .clock-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 7px 9px;
+    }
+
     .clock .time {
-      font-size: 30px;
+      font-size: 28px;
+      line-height: 1;
       color: #fff;
+      white-space: nowrap;
     }
 
     .clock .refresh {
-      margin-top: 2px;
-      font-size: 12px;
-      letter-spacing: .06em;
+      margin-top: 6px;
+      font-size: 10px;
+      line-height: 1.05;
+      letter-spacing: .05em;
       text-transform: uppercase;
+      white-space: nowrap;
     }
 
     .setup {
@@ -730,7 +762,7 @@
     </main>
 
     <footer class="bottom">
-      <div id="scratchCabCard" class="scratch-card">
+      <div id="scratchCabCard" class="scratch-card scratch-cab">
         <div class="trophy">🏆</div>
         <div class="scratch-info">
           <div class="scratch-title">Scratch Caballeros</div>
@@ -739,7 +771,7 @@
         <div id="scratchCabScore" class="scratch-score">-</div>
       </div>
 
-      <div id="scratchDamCard" class="scratch-card">
+      <div id="scratchDamCard" class="scratch-card scratch-dam">
         <div class="trophy">🏆</div>
         <div class="scratch-info">
           <div class="scratch-title">Scratch Damas</div>
@@ -748,7 +780,7 @@
         <div id="scratchDamScore" class="scratch-score">-</div>
       </div>
 
-      <div class="clock">
+      <div class="clock clock-card">
         <div id="hora" class="time">--:--</div>
         <div id="refreshInfo" class="refresh">Última act.: --:--</div>
       </div>
@@ -1277,22 +1309,6 @@
       });
     }
 
-    function serieTexto(j) {
-      // Preparado para torneos en serie si luego agregamos campos en scorecards:
-      // serie_fecha_1_net, serie_fecha_2_net, serie_fecha_3_net, series_total
-      const f1 = j.serie_fecha_1_net ?? j.series_f1_net ?? j.net_fecha_1 ?? null;
-      const f2 = j.serie_fecha_2_net ?? j.series_f2_net ?? j.net_fecha_2 ?? null;
-      const f3 = j.serie_fecha_3_net ?? j.series_f3_net ?? j.net_fecha_3 ?? null;
-      const total = j.series_total ?? j.total_serie ?? null;
-
-      const partes = [];
-      if (f1 !== null && f1 !== undefined && f1 !== "") partes.push(`F1 ${f1}`);
-      if (f2 !== null && f2 !== undefined && f2 !== "") partes.push(`F2 ${f2}`);
-      if (f3 !== null && f3 !== undefined && f3 !== "") partes.push(`F3 ${f3}`);
-      if (total !== null && total !== undefined && total !== "") partes.push(`TOTAL ${total}`);
-      return partes.join(" · ");
-    }
-
     function renderPlayerCard(item, indexInPage) {
       const j = item.jugador;
       const estado = esNoValido(j) ? textoEstadoVisible(j) : "";
@@ -1300,7 +1316,6 @@
       const hcp = estado || valorDisplay(j.playing_handicap);
       const netoBase = esAmericana() ? valorDisplay(j.gross) : valorDisplay(j.net ?? j.total);
       const neto = estado || netoBase;
-      const serie = serieTexto(j);
       const top1 = Number(item.pos) === 1 ? "top1" : "";
       const scratchClass = item.scratchWinner ? "scratch-winner" : "";
       const posTexto = item.scratchWinner ? "-" : (item.pos ? item.pos + "°" : "");
@@ -1314,7 +1329,6 @@
               <span>Gross ${escapeHtml(gross)}</span>
               <span>HCP ${escapeHtml(hcp)}</span>
             </div>
-            ${serie ? `<div class="series-line">${escapeHtml(serie)}</div>` : ""}
           </div>
           <div class="scorebox">
             <div class="net">${escapeHtml(neto)}</div>
@@ -1397,9 +1411,12 @@
 
       if (bottom) {
         const columnas = [];
-        if (MOSTRAR_SCRATCH_CAB) columnas.push("1fr");
-        if (MOSTRAR_SCRATCH_DAM) columnas.push("1fr");
-        columnas.push("auto");
+        if (MOSTRAR_SCRATCH_CAB) columnas.push("minmax(0, 1fr)");
+        if (MOSTRAR_SCRATCH_DAM) columnas.push("minmax(0, 1fr)");
+
+        // El reloj/última actualización queda como tercer recuadro más chico.
+        // Si no se muestra ningún scratch, ocupa todo el ancho para no quedar flotando.
+        columnas.push(columnas.length ? "minmax(170px, 0.42fr)" : "1fr");
         bottom.style.gridTemplateColumns = columnas.join(" ");
       }
 
@@ -1691,18 +1708,7 @@
             official_index,
             playing_handicap,
             player_gender,
-            hole_scores,
-            serie_fecha_1_net,
-            serie_fecha_2_net,
-            serie_fecha_3_net,
-            series_f1_net,
-            series_f2_net,
-            series_f3_net,
-            net_fecha_1,
-            net_fecha_2,
-            net_fecha_3,
-            series_total,
-            total_serie
+            hole_scores
           `)
           .eq("tournament_id", torneoId);
 
