@@ -195,6 +195,41 @@
       gap: 10px;
     }
 
+    .leader-grid.modo-una-categoria {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .leader-grid.modo-una-categoria .player-card {
+      grid-template-columns: 70px minmax(0, 1fr) 110px;
+      padding: 12px 16px;
+    }
+
+    .leader-grid.modo-una-categoria .pos {
+      font-size: 30px;
+    }
+
+    .leader-grid.modo-una-categoria .p-name {
+      font-size: 28px;
+    }
+
+    .leader-grid.modo-una-categoria .p-sub {
+      font-size: 16px;
+    }
+
+    .leader-grid.modo-una-categoria .scorebox {
+      width: 110px;
+      min-width: 110px;
+      max-width: 110px;
+    }
+
+    .leader-grid.modo-una-categoria .net {
+      font-size: 34px;
+    }
+
+    .leader-grid.modo-una-categoria .label-net {
+      font-size: 12px;
+    }
+
     .category {
       min-width: 0;
       min-height: 0;
@@ -1245,12 +1280,14 @@
 
       // El bloque multimedia va debajo de Rojas Damas si existe.
       // Si no existe Rojas, va debajo de la última categoría visible.
+      const hayUnaSolaCategoria = grupos.length === 1;
+
       const indiceRojas = grupos.findIndex(g => g.key === "rojas");
-      const indiceMedia = MOSTRAR_MEDIA ? (indiceRojas >= 0 ? indiceRojas : grupos.length - 1) : -1;
+      const indiceMedia = (MOSTRAR_MEDIA && !hayUnaSolaCategoria) ? (indiceRojas >= 0 ? indiceRojas : grupos.length - 1) : -1;
 
       grupos = grupos.map((g, idx) => ({
         ...g,
-        mediaSlot: MOSTRAR_MEDIA && idx === indiceMedia
+        mediaSlot: MOSTRAR_MEDIA && !hayUnaSolaCategoria && idx === indiceMedia
       }));
 
       return grupos;
@@ -1440,6 +1477,12 @@
       const grupos = getCategoriasConJugadores();
       maxPages = calcularMaxPages(grupos);
       if (pageIndex >= maxPages) pageIndex = 0;
+
+      const cantidadColumnas = Math.max(1, Math.min(grupos.length || 1, CATEGORY_COLUMNS));
+      grid.classList.toggle("modo-una-categoria", grupos.length === 1);
+      grid.style.gridTemplateColumns = grupos.length === 1
+        ? "minmax(0, 1fr)"
+        : `repeat(${cantidadColumnas}, minmax(0, 1fr))`;
 
       grid.innerHTML = grupos.map(grupo => {
         const pageSize = getPageSize(grupo);
