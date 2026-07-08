@@ -1009,6 +1009,11 @@
       return nombre.includes("americana") || nombre.includes("american");
     }
 
+    function esFourball() {
+      const nombre = nombreModalidad();
+      return nombre.includes("fourball") || nombre.includes("four ball");
+    }
+
     function normalizarGenero(valor) {
       const g = normalizarTexto(valor);
       if (["male", "m", "masculino", "hombre", "caballero", "caballeros"].includes(g)) return "male";
@@ -1188,7 +1193,64 @@
       return "otros";
     }
 
+    function categoriaPublicaFourballJugador(j) {
+      const genero = generoJugador(j);
+      if (genero === "female") return "Damas";
+      if (genero === "male") return "Caballeros";
+
+      const cat = normalizarTexto(j.category_name || "");
+      if (cat.includes("dama") || cat.includes("roja")) return "Damas";
+
+      return "Caballeros";
+    }
+
+    function getCategoriasFourballConJugadores() {
+      const caballeros = jugadores
+        .filter(j => categoriaPublicaFourballJugador(j) === "Caballeros")
+        .slice()
+        .sort(compararJugadores);
+
+      const damas = jugadores
+        .filter(j => categoriaPublicaFourballJugador(j) === "Damas")
+        .slice()
+        .sort(compararJugadores);
+
+      let grupos = [
+        {
+          key: "caballeros",
+          cat: { name: "Caballeros" },
+          lista: caballeros
+        },
+        {
+          key: "damas",
+          cat: { name: "Damas" },
+          lista: damas
+        }
+      ].filter(g => g.lista.length > 0);
+
+      if (!grupos.length) {
+        grupos = [
+          { key: "caballeros", cat: { name: "Caballeros" }, lista: [] },
+          { key: "damas", cat: { name: "Damas" }, lista: [] }
+        ];
+      }
+
+      const hayUnaSolaCategoria = grupos.length === 1;
+      const indiceMedia = (MOSTRAR_MEDIA && !hayUnaSolaCategoria)
+        ? grupos.length - 1
+        : -1;
+
+      return grupos.map((g, idx) => ({
+        ...g,
+        mediaSlot: MOSTRAR_MEDIA && !hayUnaSolaCategoria && idx === indiceMedia
+      }));
+    }
+
     function getCategoriasConJugadores() {
+      if (esFourball()) {
+        return getCategoriasFourballConJugadores();
+      }
+
       const ordenadas = ordenarCategorias(categorias);
 
       const slotsBase = [
@@ -1442,6 +1504,9 @@
       const cabCard = document.getElementById("scratchCabCard");
       const damCard = document.getElementById("scratchDamCard");
       const bottom = document.querySelector(".bottom");
+
+      const mostrarScratchCab = !esFourball() && MOSTRAR_SCRATCH_CAB;
+      const mostrarScratchDam = !esFourball() && MOSTRAR_SCRATCH_DAM;
 
       cabCard?.classList.toggle("hidden", !MOSTRAR_SCRATCH_CAB);
       damCard?.classList.toggle("hidden", !MOSTRAR_SCRATCH_DAM);
@@ -1741,18 +1806,19 @@
         const { data: scorecards, error: errorSc } = await supabase
           .from("scorecards")
           .select(`
-            id,
-            display_name,
-            gross,
-            net,
-            total,
-            card_status,
-            category_id,
-            official_index,
-            playing_handicap,
-            player_gender,
-            hole_scores
-          `)
+              id,
+              display_name,
+              gross,
+              net,
+              total,
+              card_status,
+              category_id,
+              category_name,
+              official_index,
+              playing_handicap,
+              player_gender,
+              hole_scores
+            `)
           .eq("tournament_id", torneoId);
 
         if (errorSc) {
