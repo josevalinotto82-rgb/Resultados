@@ -1006,12 +1006,24 @@
 
     function esAmericana() {
       const nombre = nombreModalidad();
-      return nombre.includes("americana") || nombre.includes("american");
+
+      return (
+        nombre.includes("americana") ||
+        nombre.includes("american")
+      );
     }
 
     function esFourball() {
       const nombre = nombreModalidad();
-      return nombre.includes("fourball") || nombre.includes("four ball");
+
+      return (
+        nombre.includes("fourball") ||
+        nombre.includes("four ball")
+      );
+    }
+
+    function esFourballClasico() {
+      return esFourball() && !esAmericana();
     }
 
     function normalizarGenero(valor) {
@@ -1247,7 +1259,14 @@
     }
 
     function getCategoriasConJugadores() {
-      if (esFourball()) {
+      /*
+       * Fourball Americana:
+       * se presenta solamente como Caballeros y Damas.
+       *
+       * Fourball Clásico:
+       * conserva todas las categorías reales del torneo.
+       */
+      if (esFourball() && esAmericana()) {
         return getCategoriasFourballConJugadores();
       }
 
@@ -1508,8 +1527,8 @@
       const mostrarScratchCab = !esFourball() && MOSTRAR_SCRATCH_CAB;
       const mostrarScratchDam = !esFourball() && MOSTRAR_SCRATCH_DAM;
 
-      cabCard?.classList.toggle("hidden", !MOSTRAR_SCRATCH_CAB);
-      damCard?.classList.toggle("hidden", !MOSTRAR_SCRATCH_DAM);
+      cabCard?.classList.toggle("hidden", !mostrarScratchCab);
+      damCard?.classList.toggle("hidden", !mostrarScratchDam);
 
       if (bottom) {
         const columnas = [];
