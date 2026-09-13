@@ -857,6 +857,7 @@
     let torneoActual = null;
     let categorias = [];
     let jugadores = [];
+    let registrations = [];
     let hoyosPorScorecard = {};
     let pageIndex = 0;
     let maxPages = 1;
@@ -1176,6 +1177,171 @@
       });
     }
 
+    function esTorneoCategoriasNuevas() {
+      return (categorias || []).some(cat =>
+        normalizarTexto(cat?.category_system) === "new"
+      );
+    }
+
+    function idsCategoriaCompatibles(cat) {
+      return new Set(
+        [cat?.id, cat?.category_id]
+          .filter(Boolean)
+          .map(v => String(v))
+      );
+    }
+
+    function registrationPorId(id) {
+      const buscado = String(id || "").trim();
+      if (!buscado) return null;
+
+      return (registrations || []).find(r =>
+        String(r?.id || "").trim() === buscado
+      ) || null;
+    }
+
+    function registrationsDeScorecard(sc) {
+      const salida = [];
+      const vistos = new Set();
+
+      function agregar(reg) {
+        if (!reg?.id) return;
+        const id = String(reg.id);
+        if (vistos.has(id)) return;
+        vistos.add(id);
+        salida.push(reg);
+      }
+
+      const principal = registrationPorId(sc?.registration_id);
+
+      if (principal) {
+        agregar(principal);
+
+        if (principal.partner_registration_id) {
+          agregar(registrationPorId(principal.partner_registration_id));
+        }
+
+        // Compatibilidad por si la relación de pareja quedó guardada sólo del otro lado.
+        (registrations || [])
+          .filter(r =>
+            String(r?.partner_registration_id || "") === String(principal.id)
+          )
+          .forEach(agregar);
+      }
+
+      return salida;
+    }
+
+    function jugadorPerteneceCategoriaNueva(sc, cat) {
+      const idsCat = idsCategoriaCompatibles(cat);
+
+      /*
+       * 1) Asignación explícita de la scorecard.
+       */
+      if (
+        sc?.category_id != null &&
+        idsCat.has(String(sc.category_id))
+      ) {
+        return true;
+      }
+
+      /*
+       * 2) Asignación de registrations.
+       * Es clave en Americana porque una pareja puede involucrar
+       * participantes asignados a categorías distintas.
+       */
+      const regs = registrationsDeScorecard(sc);
+
+      if (
+        regs.some(r =>
+          r?.category_id != null &&
+          idsCat.has(String(r.category_id))
+        )
+      ) {
+        return true;
+      }
+
+      /*
+       * 3) Respaldo por nombre congelado, solamente si es inequívoco.
+       */
+      const nombreSc = normalizarTexto(sc?.category_name);
+      const nombreCat = normalizarTexto(cat?.name);
+
+      if (nombreSc && nombreCat && nombreSc === nombreCat) {
+        const coincidencias = (categorias || []).filter(c =>
+          normalizarTexto(c?.name) === nombreSc
+        );
+
+        if (coincidencias.length === 1) return true;
+      }
+
+      /*
+       * 4) Último respaldo por HCP de juego.
+       * No reemplaza una asignación explícita.
+       */
+      const hcp = parseNumero(sc?.playing_handicap);
+      const min = parseNumero(cat?.playing_handicap_min);
+      const max = parseNumero(cat?.playing_handicap_max);
+
+      if (hcp != null && (min != null || max != null)) {
+        const desde = min == null ? -Infinity : min;
+        const hasta = max == null ? Infinity : max;
+        return hcp >= desde && hcp <= hasta;
+      }
+
+      return false;
+    }
+
+    function getCategoriasNuevasConJugadores() {
+      const ordenadas = ordenarCategorias(categorias);
+
+      let grupos = ordenadas.map(cat => {
+        const lista = (jugadores || [])
+          .filter(j => jugadorPerteneceCategoriaNueva(j, cat))
+          .slice()
+          .sort(compararJugadores);
+
+        return {
+          key: `cat_${cat.id}`,
+          cat,
+          lista
+        };
+      });
+
+      /*
+       * Si ya hay resultados, ocultamos categorías sin participantes.
+       * Si todavía no hay tarjetas/resultados, mostramos todas las
+       * categorías creadas para el torneo.
+       */
+      const conJugadores = grupos.filter(g => g.lista.length > 0);
+      if (conJugadores.length) grupos = conJugadores;
+
+      /*
+       * La TV admite hasta 5 columnas simultáneas.
+       * Se respeta display_order de tournament_categories.
+       */
+      grupos = grupos.slice(0, 5);
+
+      const hayUnaSolaCategoria = grupos.length === 1;
+
+      /*
+       * Multimedia: en categorías nuevas no buscamos nombres "Rojas".
+       * Se ubica en la última categoría visible, salvo que haya una sola.
+       */
+      const indiceMedia =
+        (MOSTRAR_MEDIA && !hayUnaSolaCategoria && grupos.length)
+          ? grupos.length - 1
+          : -1;
+
+      return grupos.map((g, idx) => ({
+        ...g,
+        mediaSlot:
+          MOSTRAR_MEDIA &&
+          !hayUnaSolaCategoria &&
+          idx === indiceMedia
+      }));
+    }
+
     function categoriaSlotBasico(cat) {
       const nombre = normalizarTexto(cat?.name || "");
 
@@ -1260,6 +1426,18 @@
 
     function getCategoriasConJugadores() {
       /*
+       * TORNEOS NUEVOS:
+       * tournament_categories es autoritativo.
+       * Se muestran exactamente sus nombres y display_order.
+       * No se renombran categorías por color ni por modalidad.
+       */
+      if (esTorneoCategoriasNuevas()) {
+        return getCategoriasNuevasConJugadores();
+      }
+
+      /*
+       * COMPATIBILIDAD LEGACY
+       *
        * Fourball Americana:
        * se presenta solamente como Caballeros y Damas.
        *
@@ -1410,6 +1588,14 @@
     }
 
     function calcularPosiciones(lista) {
+      /*
+       * La lista ya llega ordenada dentro de SU categoría.
+       * Por lo tanto, en torneos nuevos el 1° de cada grupo es el
+       * ganador real de esa tournament_category.
+       *
+       * En Medal, si está activada la exclusión del Scratch,
+       * el ganador Scratch se saltea y el siguiente pasa a ser 1°.
+       */
       let posicion = 1;
 
       return lista.map(j => {
@@ -1815,7 +2001,16 @@
 
         const { data: cats, error: errorCats } = await supabase
           .from("tournament_categories")
-          .select("id, name, display_order, gender")
+          .select(`
+            id,
+            category_id,
+            category_system,
+            name,
+            display_order,
+            gender,
+            playing_handicap_min,
+            playing_handicap_max
+          `)
           .eq("tournament_id", torneoId)
           .order("display_order", { ascending: true });
 
@@ -1826,6 +2021,7 @@
           .from("scorecards")
           .select(`
               id,
+              registration_id,
               display_name,
               gross,
               net,
@@ -1846,6 +2042,7 @@
             .from("scorecards")
             .select(`
               id,
+              registration_id,
               display_name,
               gross,
               net,
@@ -1864,6 +2061,32 @@
           jugadores = scorecardsBasico || [];
         } else {
           jugadores = scorecards || [];
+        }
+
+        /*
+         * Para torneos nuevos, especialmente Fourball Americana,
+         * la categoría real de cada participante puede estar en registrations.
+         * Una scorecard de pareja no siempre alcanza para representar las
+         * categorías de ambos jugadores.
+         */
+        const { data: regs, error: errorRegs } = await supabase
+          .from("registrations")
+          .select(`
+            id,
+            tournament_id,
+            category_id,
+            partner_registration_id,
+            linked_player_id,
+            aag_member_number,
+            reported_index
+          `)
+          .eq("tournament_id", torneoId);
+
+        if (errorRegs) {
+          console.warn("No se pudieron cargar registrations para categorías:", errorRegs);
+          registrations = [];
+        } else {
+          registrations = regs || [];
         }
 
         hoyosPorScorecard = {};
