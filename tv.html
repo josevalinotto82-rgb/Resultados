@@ -36,7 +36,7 @@
         ["EL TERRON GOLF CLUB",[["70351","CALSINA, EDUARDO"],["64555","CARRERAS, JUAN"],["113648","ARDUH, JUAN"],["64308","GRUNHAUT, DIEGO"],["156030","CESAR LLOPIS, GONZALO"],["62467","LOZADA, AGUSTIN (H)"]]],
         ["RIO CUARTO GOLF CLUB",[["118865","ESTIVILL, GUILLERMO (H)"],["137137","CERDA, VALENTÍN G."],["168357","CARRANZA, CLODOMIRO"],["120282","FICCO, IGNACIO"],["93132","PICHETTO, SEBASTIAN"]]],
         ["VILLA MARIA GOLF CLUB",[["169330","VENERANDA, BAUTISTA"],["169314","GABIOUD, BAUTISTA"],["176303","LANZILLOTTA, FELIPE"],["99545","MONTAGNER, FEDERICO"],["180428","ESCALAREA, TOMAS"],["116339","ESPINA, IGNACIO"]]],
-        ["JOCKEY CLUB CORDOBA",[["69226","GRANATA, EMILIANO"],["101929","NASIFF, FRANCISCO"],["115902","STEFANINI, FRANCISCO"],["96932","RODRIGUEZ RIVERA, IGNACIO"],["135822","PAGLIA, MATEO"],["84633","FIGUEROA, PEDRO"]]]]},
+        ["JOCKEY CLUB CORDOBA",[["69226","GRANATA, EMILIANO"],["82126","Matrícula 82126"],["101929","NASIFF, FRANCISCO"],["115902","STEFANINI, FRANCISCO"],["96932","RODRIGUEZ RIVERA, IGNACIO"],["135822","PAGLIA, MATEO"],["84633","FIGUEROA, PEDRO"]]]]},
       {name:"Caballeros · Segunda División",teams:[
         ["LOMAS DE LA CAROLINA",[["167030","PEREYRA, JUAN CRUZ"],["155837","MILLER, FRANCO"],["169406","CHAGURI MENZI, FRANCISCO"],["156608","ZABLOSKY, GASTON"],["179524","COHEN OLIVA, FRANCISCO"]]],
         ["BELL VILLE GOLF CLUB",[["130905","MIHAICH, LEANDRO"],["156447","ANCONETANI, VICENTE"],["152815","PEÑA DATTA, MANOLO"],["51823","MIHAICH, LISANDRO"],["168354","ARMANDO, BAUTISTA"]]],
@@ -52,7 +52,7 @@
         ["CLUB ATLETICO UNION ALICIA",[["109670","CAFFARATTI, MAXIMILIANO DAVID"],["129157","GUEVARA FIURI, ERNESTO GERHARD"],["129601","SILVA, FEDERICO"],["153480","MARTINEZ, JOAQUIN"],["136392","MARTINEZ, RAMIRO LUIS"]]],
         ["ESTANCIA LA PAZ GOLF",[["171058","HAYES, BENJAMIN"],["86488","DE BIASI, EMILIO"],["139867","BUSTO, JOAQUIN LEONEL"],["82130","MARCISZACK, NICOLAS"],["169723","DE BIASI, IGNACIO"]]]]},
       {name:"Caballeros · Cuarta División",teams:[
-        ["LOS EUCALIPTUS GOLF",[["103183","FERRERO, DIEGO"],["113156","FERRERO, CESAR"],["127012","ZAMORA, LUCAS"],["103155","SAMPIETRO, RAUL"]]],
+        ["LOS EUCALIPTUS GOLF",[["103183","FERRERO, DIEGO"],["113156","FERRERO, CESAR"],["127012","ZAMORA, LUCAS"],["103155","SAMPIETRO, RAUL"],["156685","Matrícula 156685"]]],
         ["CORONEL MOLDES GOLF CLUB",[["127383","ANGELLI, CRISTIAN PABLO"],["133651","DIAZ, GUSTAVO ARIEL"],["152344","ROSSETTO, BRUNO SALVADOR"],["136743","DOMINGUEZ, GERMAN"],["155373","RAMIREZ, IVAN DAVID"]]],
         ["LA RIOJA CLUB DE GOLF",[["84871","CASTILLO, CARLOS A."],["128977","ROMANAZZI, JUAN MANUEL"],["65642","PESCE, JOSÉ PABLO"],["156166","AVENTUROSO ARTICO, JERÓNIMO"],["117101","MERCADO LUNA, LISANDRO"]]],
         ["GOLF CLUB RIO TERCERO",[["178587","STERPONE, ANDRES NICOLAS"],["179865","SIMONELLI, OCTAVIO"],["106553","CORNEJO, RICARDO GUSTAVO"],["141742","GIGENA, FERNANDO"],["181167","CARREON PEÑA, JUAN IGNACIO"]]],
@@ -91,7 +91,7 @@
       let rank=0,last=null;teams.forEach((t,i)=>{if(t.complete){if(last===null||t.total!==last)rank=i+1;t.rank=rank;last=t.total}else t.rank=null});return teams;
     }
     function teamHtml(t){
-      const players=t.players.map(p=>{let cls="missing",score="–";if(p.score!==null){cls=t.used.has(p.member)?"used":"discarded";score=p.score}return`<div class="player ${cls}"><span class="player-name">${esc(p.name)}</span><span class="player-score">${score}</span></div>`}).join("");
+      const players=t.players.filter(p=>p.score!==null).map(p=>{let cls="missing",score="–";if(p.score!==null){cls=t.used.has(p.member)?"used":"discarded";score=p.score}return`<div class="player ${cls}"><span class="player-name">${esc(p.name)}</span><span class="player-score">${score}</span></div>`}).join("");
       const label=t.complete?`Total ${t.required} mejores`:`${t.count}/${t.required} tarjetas`;const value=t.complete?t.total:"Parcial";
       return`<article class="team ${t.rank===1?"first":""} ${t.complete?"":"partial"}"><div class="rank">${t.rank?`${t.rank}°`:"–"}</div><div class="team-main"><div class="team-name">${esc(t.club)}</div><div class="players">${players}</div></div><div class="total"><div class="total-value">${value}</div><div class="total-label">${label}</div></div></article>`;
     }
