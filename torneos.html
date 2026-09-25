@@ -2509,13 +2509,13 @@
             if (esNoValido(j)) return false;
             if (generoJugador(j) !== genero) return false;
 
+            // Damas: todas compiten por Scratch, sin restricción de índex.
+            if (genero === "female") return true;
+
             const idx = parseNumero(j.official_index);
             if (idx === null) return false;
 
-            if (genero === "male") return idx >= -6 && idx <= 9;
-
-            // Damas: todas compiten por Scratch.
-            if (genero === "female") return idx >= -10 && idx <= 54;
+            if (genero === "male") return idx >= -10 && idx <= 9;
 
             return false;
         }
@@ -4695,8 +4695,8 @@
                     });
 
                 /*
-                 * Scratch siempre muestra únicamente
-                 * los tres primeros puestos.
+                 * Scratch muestra a todos los participantes que cumplen
+                 * los requisitos, sin límite de puestos.
                  */
                 const listaScratchFinal = listaScratch
                     .filter(j => {
@@ -4708,8 +4708,7 @@
                         }
 
                         return cumpleMinimoSerie(j, true);
-                    })
-                    .slice(0, 3);
+                    });
 
                 renderTablaCategoria(
                     titulo,
