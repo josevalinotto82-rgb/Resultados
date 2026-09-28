@@ -1011,6 +1011,13 @@
             }
         }
 
+        .wagr-jugador { border: 0; background: transparent; color: #166534; font: inherit; text-align: left; cursor: pointer; padding: 0; }
+        .wagr-jugador small { display: block; font-size: 12px; color: #59675d; margin-top: 5px; letter-spacing: 0; text-transform: none; }
+        .wagr-detalle[hidden] { display: none; }
+        .wagr-panel .wagr-detalle > td { text-align: left; background: #f5f8f3; padding: 16px; }
+        .wagr-tarjeta { border: 1px solid #d6e2d8; border-radius: 8px; background: white; padding: 12px; margin-bottom: 10px; }
+        .wagr-tarjeta summary { cursor: pointer; color: #166534; font-weight: bold; }
+        .wagr-tarjeta .scorecard-desktop { overflow-x: auto; }
         .wagr-panel .categoria-header { margin: 0; }
         .wagr-scroll { overflow-x: auto; }
         .wagr-panel .wagr-table { display: table; width: 100%; min-width: 580px; border-collapse: collapse; }
@@ -4369,6 +4376,29 @@
             });
             return filas;
         }
+        window.toggleTarjetasWagr = function(matricula) {
+            const fila = document.getElementById('wagr-tarjetas-' + matricula);
+            const boton = document.getElementById('wagr-jugador-' + matricula);
+            if (!fila || !boton) return;
+            const abrir = fila.hidden;
+            fila.hidden = !abrir;
+            boton.setAttribute('aria-expanded', String(abrir));
+            if (!abrir || fila.dataset.loaded) return;
+            const fechas = ['Viernes 25', 'Sábado 26', 'Domingo 27'];
+            fila.querySelector('td').innerHTML = WAGR_RONDAS.map((id,i) => {
+                const tarjetas = scorecardsSerie.filter(sc => String(sc.aag_member_number ?? '').trim() === matricula && sc.tournament_id === id);
+                if (tarjetas.length !== 1) return `<p>${fechas[i]}: ${tarjetas.length ? 'tarjetas duplicadas, pendiente de revisión' : 'sin tarjeta registrada'}.</p>`;
+                const sc = tarjetas[0];
+                const estado = sc.card_status === 'valid' ? `Gross: ${sc.gross ?? '—'}` : sc.card_status === 'desc' ? 'DQ · Descalificado' : sc.card_status === 'npt' ? 'NPT · No presentó tarjeta' : escaparWagr(sc.card_status);
+                reconstruirHoyosScorecard(sc);
+                const hoyos = hoyosPorScorecard[sc.id] || {};
+                const tieneGolpes = Object.values(hoyos).some(v => v !== null && v !== undefined && Number(v) > 0);
+                return `<details class="wagr-tarjeta"><summary>${fechas[i]} · ${estado}</summary>
+                    <p>Matrícula ${escaparWagr(matricula)} · Tee ${escaparWagr(sc.tee_name || '—')} · Index ${escaparWagr(sc.official_index ?? '—')}</p>
+                    ${tieneGolpes ? detalleDesktop(sc) + detalleMobile(sc) : '<p>No hay golpes por hoyo registrados para esta vuelta.</p>'}</details>`;
+            }).join('');
+            fila.dataset.loaded = 'true';
+        };
         function renderResultadosWagr() {
             const grupos = [['male','Caballeros'],['female','Damas']];
             return `<div class="card"><h2>WAGR · 54 hoyos</h2>
@@ -4381,9 +4411,9 @@
                     <div class="wagr-scroll" role="region" aria-label="Resultados ${titulo}" tabindex="0">
                     <table class="wagr-table"><thead><tr><th scope="col">Pos.</th><th scope="col">Jugador</th>
                     <th scope="col">Vie. 25</th><th scope="col">Sáb. 26</th><th scope="col">Dom. 27</th><th scope="col">Total</th></tr></thead>
-                    <tbody>${filas.map(p => `<tr><td>${escaparWagr(p.posicion)}</td><th scope="row">${escaparWagr(p.nombre)}</th>
+                    <tbody>${filas.map(p => `<tr><td>${escaparWagr(p.posicion)}</td><th scope="row"><button type="button" class="wagr-jugador" id="wagr-jugador-${p.matricula}" aria-expanded="false" aria-controls="wagr-tarjetas-${p.matricula}" onclick="toggleTarjetasWagr('${p.matricula}')">${escaparWagr(p.nombre)}<small>Matrícula ${escaparWagr(p.matricula)} · Ver tarjetas</small></button></th>
                     ${p.rondas.map((list,i) => `<td>${p.scores[i] ?? (list.length > 1 ? 'Revisar' : list[0]?.card_status === 'desc' ? 'DQ' : list[0]?.card_status === 'npt' ? 'NPT' : '—')}</td>`).join('')}
-                    <td><strong>${p.total ?? '—'}</strong></td></tr>`).join('')}</tbody></table></div></section>`;
+                    <td><strong>${p.total ?? '—'}</strong></td></tr><tr id="wagr-tarjetas-${p.matricula}" class="wagr-detalle" hidden><td colspan="6"></td></tr>`).join('')}</tbody></table></div></section>`;
             }).join('');
         }
 
