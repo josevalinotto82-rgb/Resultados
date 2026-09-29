@@ -4387,7 +4387,7 @@
                 const completa = scores.every(n => n !== null);
                 const dq = rondas.some(list => list.some(sc => sc.card_status === 'desc'));
                 const npt = rondas.some(list => list.some(sc => sc.card_status === 'npt'));
-                const estado = dq ? 'DQ' : p.retiroConfirmado ? 'WD' : npt ? 'NPT' : 'Incompleto';
+                const estado = dq ? 'DQ' : p.retiroConfirmado ? 'WD' : npt ? 'WD' : 'Incompleto';
                 return {...p, rondas, scores, completa, total: completa ? scores.reduce((a,b) => a+b,0) : null, estado};
             });
             filas.sort((a,b) => Number(b.completa)-Number(a.completa) ||
@@ -4412,7 +4412,7 @@
                 const tarjetas = scorecardsSerie.filter(sc => String(sc.aag_member_number ?? '').trim() === matricula && sc.tournament_id === id);
                 if (tarjetas.length !== 1) return `<p>${fechas[i]}: ${tarjetas.length ? 'tarjetas duplicadas, pendiente de revisión' : 'sin tarjeta registrada'}.</p>`;
                 const sc = tarjetas[0];
-                const estado = sc.card_status === 'valid' ? `Gross: ${sc.gross ?? '—'}` : sc.card_status === 'desc' ? 'DQ · Descalificado' : sc.card_status === 'npt' ? 'NPT · No presentó tarjeta' : escaparWagr(sc.card_status);
+                const estado = sc.card_status === 'valid' ? `Gross: ${sc.gross ?? '—'}` : sc.card_status === 'desc' ? 'DQ · Descalificado' : sc.card_status === 'npt' ? 'WD · Retirado' : escaparWagr(sc.card_status);
                 reconstruirHoyosScorecard(sc);
                 const hoyos = hoyosPorScorecard[sc.id] || {};
                 const tieneGolpes = Object.values(hoyos).some(v => v !== null && v !== undefined && Number(v) > 0);
@@ -4427,8 +4427,8 @@
             return `<div class="card"><h2>WAGR · 54 hoyos</h2>
                 <p>46º de las bolsas · 25, 26 y 27 de septiembre de 2026 · Resultados gross</p>
                 <p>Desempate: menor score del domingo, luego sábado y viernes. Si persiste: últimos 9, 6, 3 y último hoyo del domingo. Si todos coinciden, se comparte el puesto.</p>
-                <p>Index de −10 a 9 inclusive. T: empate · DQ: descalificado · WD: retirado · NPT: no presentó tarjeta.</p>
-                <p>Los resultados incompletos no tienen total ni posición final. Los casos NPT están pendientes de confirmar como retiros.</p></div>` + grupos.map(([genero,titulo]) => {
+                <p>Index de −10 a 9 inclusive. T: empate · DQ: descalificado · WD: retirado.</p>
+                <p>Los resultados incompletos no tienen total ni posición final.</p></div>` + grupos.map(([genero,titulo]) => {
                 const filas = resultadosWagr(scorecardsSerie, genero);
                 return `<section class="categoria-card wagr-panel" aria-label="${titulo}">
                     <h2 class="categoria-header">${titulo} <small>(${filas.length})</small></h2>
@@ -4436,7 +4436,7 @@
                     <table class="wagr-table"><thead><tr><th scope="col">Pos.</th><th scope="col">Jugador</th>
                     <th scope="col">Vie. 25</th><th scope="col">Sáb. 26</th><th scope="col">Dom. 27</th><th scope="col">Total</th></tr></thead>
                     <tbody>${filas.map(p => `<tr><td>${escaparWagr(p.posicion)}</td><th scope="row"><button type="button" class="wagr-jugador" id="wagr-jugador-${p.matricula}" aria-expanded="false" aria-controls="wagr-tarjetas-${p.matricula}" onclick="toggleTarjetasWagr('${p.matricula}')">${escaparWagr(p.nombre)}<small>Matrícula ${escaparWagr(p.matricula)} · Ver tarjetas</small></button></th>
-                    ${p.rondas.map((list,i) => `<td>${p.scores[i] ?? (list.length > 1 ? 'Revisar' : list[0]?.card_status === 'desc' ? 'DQ' : list[0]?.card_status === 'npt' ? 'NPT' : '—')}</td>`).join('')}
+                    ${p.rondas.map((list,i) => `<td>${p.scores[i] ?? (list.length > 1 ? 'Revisar' : list[0]?.card_status === 'desc' ? 'DQ' : list[0]?.card_status === 'npt' ? 'WD' : '—')}</td>`).join('')}
                     <td><strong>${p.total ?? '—'}</strong></td></tr><tr id="wagr-tarjetas-${p.matricula}" class="wagr-detalle" hidden><td colspan="6"></td></tr>`).join('')}</tbody></table></div></section>`;
             }).join('');
         }
