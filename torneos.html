@@ -4394,8 +4394,8 @@
                 (a.completa ? compararDesempateWagr(a,b) : 0) || a.nombre.localeCompare(b.nombre, 'es'));
             const completos = filas.filter(p => p.completa);
             filas.forEach(p => {
-                const empatados = p.completa ? completos.filter(q => compararDesempateWagr(q,p) === 0).length : 0;
-                p.posicion = p.completa ? `${empatados > 1 ? 'T' : ''}${1+completos.filter(q => compararDesempateWagr(q,p) < 0).length}` : p.estado;
+                const empatados = p.completa ? completos.filter(q => q.total === p.total).length : 0;
+                p.posicion = p.completa ? `${empatados > 1 ? 'T' : ''}${1+completos.filter(q => q.total < p.total).length}` : p.estado;
             });
             return filas;
         }
@@ -4426,7 +4426,6 @@
             const grupos = [['male','Caballeros'],['female','Damas']];
             return `<div class="card"><h2>WAGR · 54 hoyos</h2>
                 <p>46º de las bolsas · 25, 26 y 27 de septiembre de 2026 · Resultados gross</p>
-                <p>Desempate: menor score del domingo, luego sábado y viernes. Si persiste: últimos 9, 6, 3 y último hoyo del domingo. Si todos coinciden, se comparte el puesto.</p>
                 <p>Index de −10 a 9 inclusive. T: empate · DQ: descalificado · WD: retirado.</p>
                 <p>Los resultados incompletos no tienen total ni posición final.</p></div>` + grupos.map(([genero,titulo]) => {
                 const filas = resultadosWagr(scorecardsSerie, genero);
