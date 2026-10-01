@@ -914,6 +914,7 @@
         let settingsPollTimer = null;
         let ultimaMarcaSettings = "";
         let scratchGanadoresCategoriaSet = new Set();
+        let leaderboardCargadoUnaVez = false;
 
         function esTorneoGross() {
             return String(torneoActual?.scoring_mode || "net").toLowerCase() === "gross";
@@ -1364,11 +1365,10 @@
             return grupos.map((g, index) => ({ ...g, mediaSlot: MOSTRAR_MEDIA && mediaItems.length > 0 && index === grupos.length - 1 }));
         }
 
-        function claveJugadorSerie(sc, registration) {
-            const linkedId = String(registration?.linked_player_id || "").trim();
-            if (linkedId) return `player:${linkedId}`;
-
-            const matricula = String(sc?.aag_member_number || registration?.aag_member_number || "").trim();
+        function claveJugadorSerie(sc) {
+            // Las scorecards ya guardan la matrícula. Evitamos consultar registrations
+            // para que la pantalla pública no dependa de una sesión administrativa.
+            const matricula = String(sc?.aag_member_number || "").trim();
             if (matricula) return `aag:${matricula}`;
 
             return `name:${normalizarTexto(sc?.display_name)}`;
@@ -1388,7 +1388,7 @@
             const tournamentIds = (fechas || []).map(t => t.id);
             if (!tournamentIds.length) return [];
 
-            const [{ data: cards, error: errorCards }, { data: cats, error: errorCats }, { data: regs, error: errorRegs }] = await Promise.all([
+            const [{ data: cards, error: errorCards }, { data: cats, error: errorCats }] = await Promise.all([
                 supabase.from("scorecards").select(`
                     id, tournament_id, registration_id, display_name, gross, net, total,
                     card_status, category_id, official_index, playing_handicap,
@@ -1396,22 +1396,17 @@
                 `).in("tournament_id", tournamentIds),
                 supabase.from("tournament_categories")
                     .select("id, tournament_id, name")
-                    .in("tournament_id", tournamentIds),
-                supabase.from("registrations")
-                    .select("id, linked_player_id, aag_member_number")
                     .in("tournament_id", tournamentIds)
             ]);
 
             if (errorCards) throw errorCards;
             if (errorCats) throw errorCats;
-            if (errorRegs) throw errorRegs;
 
             const validas = (cards || []).filter(sc => !esNoValido(sc));
             const fechasJugadas = (fechas || []).slice().sort((a, b) =>
                 (parseNumero(a.series_round_number) ?? Infinity) - (parseNumero(b.series_round_number) ?? Infinity) ||
                 String(a.tournament_date || "").localeCompare(String(b.tournament_date || "")));
             const fechaPorId = new Map(fechasJugadas.map(t => [String(t.id), t]));
-            const regById = new Map((regs || []).map(r => [String(r.id), r]));
             const catById = new Map((cats || []).map(c => [String(c.id), c]));
             const categoriaActualPorNombre = new Map(
                 (categorias || []).map(c => [normalizarTexto(c.name), c.id])
@@ -1424,8 +1419,7 @@
                 if (gross === null || gross <= 0) return;
                 if (!esTorneoGross() && (neto === null || neto <= 0)) return;
 
-                const reg = regById.get(String(sc.registration_id || ""));
-                const key = claveJugadorSerie(sc, reg);
+                const key = claveJugadorSerie(sc);
                 const categoriaNombre = catById.get(String(sc.category_id || ""))?.name || "";
                 const actual = acumulados.get(key) || {
                     key,
@@ -2049,12 +2043,20 @@
 
                 renderLeaderboard();
                 marcarRefresh();
+                leaderboardCargadoUnaVez = true;
                 document.getElementById("loading").classList.add("hidden");
             } catch (err) {
                 console.error(err);
-                document.getElementById("titulo").textContent = "Error al cargar leaderboard";
-                document.getElementById("subtitulo").textContent = err?.message || "";
-                document.getElementById("leaderGrid").innerHTML = `<div class="empty-cat">No se pudieron cargar los datos.</div>`;
+                if (leaderboardCargadoUnaVez) {
+                    const ahora = new Date();
+                    const hh = String(ahora.getHours()).padStart(2, "0");
+                    const mm = String(ahora.getMinutes()).padStart(2, "0");
+                    document.getElementById("refreshInfo").textContent = `Reintentando · ${hh}:${mm}`;
+                } else {
+                    document.getElementById("titulo").textContent = "Error al cargar leaderboard";
+                    document.getElementById("subtitulo").textContent = err?.message || "";
+                    document.getElementById("leaderGrid").innerHTML = `<div class="empty-cat">No se pudieron cargar los datos.</div>`;
+                }
                 document.getElementById("loading").classList.add("hidden");
             } finally {
                 cargando = false;
